@@ -1221,8 +1221,8 @@ are:
     where *m* is the number of bytes representing the packed pixels.
     For *paletteSize* of 2 this is floor((*width* + 7) / 8) * *height*,
     for *paletteSize* of 3 or 4 this is
-    floor((*width* + 3) / 4) * *height*, for *paletteSize* of 5 to 16 this
-    is floor((*width* + 1) / 2) * *height*.
+    floor((*width* + 3) / 4) * *height*, for *paletteSize* of 5 to 16
+    this is floor((*width* + 1) / 2) * *height*.
 
 17 to 127
     Unused (no advantage over palette RLE).
