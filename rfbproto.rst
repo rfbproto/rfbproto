@@ -106,12 +106,6 @@ the rectangle, and an *encoding type* which specifies the encoding of
 the pixel data. The data itself then follows using the specified
 encoding.
 
-The encoding types defined at present are *Raw*, *CopyRect*, *RRE*,
-*Hextile* and *ZRLE*. In practice we normally use only the *ZRLE*,
-*Hextile* and *CopyRect* encodings since they provide the best
-compression for typical desktops. See `Encodings`_ for a description of
-each of the encodings.
-
 Protocol Extensions
 ===================
 
@@ -143,15 +137,14 @@ New security types
     to be anything like the RFB protocol.
 
 **Under no circumstances should you use a different protocol version
-number**. Protocol versions are defined by the maintainers of the RFB
-protocol, RealVNC Ltd. If you use a different protocol version number
-then you are not RFB / VNC compatible. To ensure that you stay
-compatible with the RFB protocol it is important that you contact
-RealVNC Ltd to make sure that your encoding types and security types do
-not clash. Please see the RealVNC website at http://www.realvnc.com for
-details of how to contact us; sending a message to the VNC mailing list
-is the best way to get in touch and let the rest of the VNC community
-know.
+number**. If you use a different protocol version number then you are
+not RFB / VNC compatible.
+
+All three mechanisms for extensions are handled by RealVNC Ltd. To
+ensure that you stay compatible with the RFB protocol it is important
+that you contact RealVNC Ltd to make sure that your encoding types and
+security types do not clash. Please see the RealVNC website at
+http://www.realvnc.com for details of how to contact them.
 
 Protocol Messages
 =================
@@ -482,7 +475,7 @@ message (`SetColourMapEntries`_).
 Client to Server Messages
 +++++++++++++++++++++++++
 
-The client to server message types defined in this document are:
+The client to server message types that all servers must support are:
 
 =========== ===========================================================
 Number      Name
@@ -495,7 +488,7 @@ Number      Name
 6           ClientCutText
 =========== ===========================================================
 
-Other registered message types are:
+Optional message types are:
 
 =========== ===========================================================
 Number      Name
@@ -508,7 +501,7 @@ Number      Name
 250         Colin Dean xvp
 =========== ===========================================================
 
-Note that before sending a message not defined in this document a
+Note that before sending a message with an optional message type a
 client must have determined that the server supports the relevant
 extension by receiving some extension-specific confirmation from the
 server.
@@ -780,7 +773,7 @@ No. of bytes    Type                 [Value]    Description
 Server to Client Messages
 +++++++++++++++++++++++++
 
-The server to client message types defined in this document are:
+The server to client message types that all clients must support are:
 
 =========== ===========================================================
 Number      Name
@@ -791,7 +784,7 @@ Number      Name
 3           ServerCutText
 =========== ===========================================================
 
-Other registered message types are:
+Optional message types are:
 
 =========== ===========================================================
 Number      Name
@@ -803,7 +796,7 @@ Number      Name
 250         Colin Dean xvp
 =========== ===========================================================
 
-Note that before sending a message not defined in this document a
+Note that before sending a message with an optional message type a
 server must have determined that the client supports the relevant
 extension by receiving some extension-specific confirmation from the
 client; usually a request for a given pseudo-encoding.
