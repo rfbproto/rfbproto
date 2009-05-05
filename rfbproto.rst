@@ -80,6 +80,11 @@ events can also be synthesised from other non-standard I/O devices. For
 example, a pen-based handwriting recognition engine might generate
 keyboard events.
 
+If you have an input source that does not fit this standard workstation
+model, the Generial Input Interface (gii) protocol extension provides
+possibilities for input sources with more axes, relative movement and
+more buttons.
+
 Representation of Pixel Data
 ============================
 
@@ -165,6 +170,11 @@ The following descriptions of protocol messages use the basic types
 respectively 8, 16 and 32-bit unsigned integers and 8, 16 and 32-bit
 signed integers. All multiple byte integers (other than pixel values
 themselves) are in big endian order (most significant byte first).
+
+However, some protocol extensions use protocol messages that have types
+that may be in little endian order. These endian agnostic types are
+``EU16``, ``EU32``, ``ES16``, ``ES32``, with some extension specific
+indicator of the endianess.
 
 The type ``PIXEL`` is taken to mean a pixel value of *bytesPerPixel*
 bytes, where 8 * *bytesPerPixel* is the number of *bits-per-pixel* as
@@ -495,7 +505,7 @@ Number      Name
 =========== ===========================================================
 255         Anthony Liguori
 254, 127    VMWare
-253         gii
+253         gii (General Input Interface)
 252         tight
 251         Pierre Ossman SetDesktopSize
 250         Colin Dean xvp
@@ -770,6 +780,268 @@ No. of bytes    Type                 [Value]    Description
 *length*        ``U8`` array                    *text*
 =============== ==================== ========== =======================
 
+gii (General Input Interface)
+-----------------------------
+
+Version
+~~~~~~~
+
+The client response to a *gii* Version message from the server is the
+following response:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               253        *message-type*
+1               ``U8``               1 or 129   *endian-and-sub-type*
+2               ``EU16``             4          *length*
+2               ``EU16``             1          *version*
+=============== ==================== ========== =======================
+
+*endian-and-sub-type* is a bit-field with the leftmost bit indicating
+big endian if set, and little endian if cleared. The rest of the bits
+are the actual message sub type.
+
+*version* is set by the client and ultimately decides the version of
+*gii* protocol extension to use. It should be in the range given by the
+server in the *gii* Version message. If the server doesn't support any
+version that the client supports, the client should instead stop using
+the *gii* extension at this point.
+
+Device Creation
+~~~~~~~~~~~~~~~
+
+After establishing the *gii* protocol extension version, the client
+proceeds by requesting creation of one or more devices.
+
+===================== =============== ========== ======================
+No. of bytes          Type            [Value]    Description
+===================== =============== ========== ======================
+1                     ``U8``          253        *message-type*
+1                     ``U8``          2 or 130   *endian-and-sub-type*
+2                     ``EU16``        2          *length*
+31                    ``U8`` array               *device-name*
+1                     ``U8``          0          *nul-terminator*
+4                     ``EU32``                   *vendor-id*
+4                     ``EU32``                   *product-id*
+4                     ``EVENT_MASK``             *can-generate*
+4                     ``EU32``                   *num-registers*
+4                     ``EU32``                   *num-valuators*
+4                     ``EU32``                   *num-buttons*
+*num-valuators* * 116 ``VALUATOR``
+===================== =============== ========== ======================
+
+*endian-and-sub-type* is a bit-field with the leftmost bit indicating
+big endian if set, and little endian if cleared. The rest of the bits
+are the actual message sub type.
+
+``EVENT_MASK`` is a bit-field indicating which events the device
+can generate.
+
+============= =========================================================
+Value         Bit name
+============= =========================================================
+0x00000020    Key press
+0x00000040    Key release
+0x00000080    Key repeat
+0x00000100    Pointer relative
+0x00000200    Pointer absolute
+0x00000400    Pointer button press
+0x00000800    Pointer button release
+0x00001000    Valuator relative
+0x00002000    Valuator absolute
+============= =========================================================
+
+and ``VALUATOR`` is
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+4               ``EU32``                        *index*
+74              ``U8`` array                    *long-name*
+1               ``U8``               0          *nul-terminator*
+4               ``U8`` array                    *short-name*
+1               ``U8``               0          *nul-terminator*
+4               ``ES32``                        *range-min*
+4               ``ES32``                        *range-center*
+4               ``ES32``                        *range-max*
+4               ``EU32``                        *SI-unit*
+4               ``ES32``                        *SI-add*
+4               ``ES32``                        *SI-mul*
+4               ``ES32``                        *SI-div*
+4               ``ES32``                        *SI-shift*
+=============== ==================== ========== =======================
+
+The *SI-unit* field is defined as:
+
+========= ==================== ========================================
+Number    SI-unit              Description
+========= ==================== ========================================
+0                              unknown
+1         s                    time
+2         1/s                  frequency
+3         m                    length
+4         m/s                  velocity
+5         m/s^2                acceleration
+6         rad                  angle
+7         rad/s                angular velocity
+8         rad/s^2              angular acceleration
+9         m^2                  area
+10        m^3                  volume
+11        kg                   mass
+12        N (kg*m/s^2)         force
+13        N/m^2 (Pa)           pressure
+14        Nm                   torque
+15        Nm, VAs, J           energy
+16        Nm/s, VA, W          power
+17        K                    temperature
+18        A                    current
+19        V (kg*m^2/(As^3))    voltage
+20        V/A (Ohm)            resistance
+21        As/V                 capacity
+22        Vs/A                 inductivity
+========= ==================== ========================================
+
+The *SI-add*, *SI-mul*, *SI-div* and *SI-shift* fields of the
+``VALUATOR`` indicate how the raw value should be translated to the
+SI-unit using the below formula.
+
+        float SI = (float) (SI_add + value[n]) * (float) SI_mul
+        / (float) SI_div * pow(2.0, SI_shift);
+
+Setting *SI-mul* to zero indicates that the valuator is non-linear or
+that the factor is unknown.
+
+Device Destruction
+~~~~~~~~~~~~~~~~~~
+
+The client can destroy a device with a device destruct message.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               253        *message-type*
+1               ``U8``               3 or 131   *endian-and-sub-type*
+2               ``EU16``             4          *length*
+4               ``EU32``                        *device-origin*
+=============== ==================== ========== =======================
+
+*endian-and-sub-type* is a bit-field with the leftmost bit indicating
+big endian if set, and little endian if cleared. The rest of the bits
+are the actual message sub type.
+
+*device-origin* is the handle retrieved with a prior device creation
+request.
+
+Injecting Events
+~~~~~~~~~~~~~~~~
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               253        *message-type*
+1               ``U8``               0 or 128   *endian-and-sub-type*
+2               ``EU16``                        *length*
+=============== ==================== ========== =======================
+
+followed by *length* bytes of ``EVENT`` entries
+
+*endian-and-sub-type* is a bit-field with the leftmost bit indicating
+big endian if set, and little endian if cleared. The rest of the bits
+are the actual message sub type.
+
+``EVENT`` is one of ``KEY_EVENT``, ``PTR_MOVE_EVENT``,
+``PTR_BUTTON_EVENT`` and ``VALUATOR_EVENT``.
+
+``KEY_EVENT`` is:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               24         *event-size*
+1               ``U8``               5, 6 or 7  *event-type*
+2               ``EU16``                        *padding*
+4               ``EU32``                        *device-origin*
+4               ``EU32``                        *modifiers*
+4               ``EU32``                        *symbol*
+4               ``EU32``                        *label*
+4               ``EU32``                        *button*
+=============== ==================== ========== =======================
+
+The possible values for *event-type* are: 5 - key pressed, 6 - key
+released and 7 - key repeat. XXX describe *modifiers*, *symbol*,
+*label* and *button*. Meanwhile, see
+http://www.ggi-project.org/documentation/libgii/current/gii_key_event.3.html
+for details.
+
+*device-origin* is the handle retrieved with a prior device creation
+request.
+
+``PTR_MOVE_EVENT`` is:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               24         *event-size*
+1               ``U8``               8 or 9     *event-type*
+2               ``EU16``                        *padding*
+4               ``EU32``                        *device-origin*
+4               ``ES32``                        *x*
+4               ``ES32``                        *y*
+4               ``ES32``                        *z*
+4               ``ES32``                        *wheel*
+=============== ==================== ========== =======================
+
+The possible values for *event-type* are: 8 - pointer relative and
+9 - pointer absolute.
+
+*device-origin* is the handle retrieved with a prior device creation
+request.
+
+``PTR_BUTTON_EVENT`` is:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               12         *event-size*
+1               ``U8``               10 or 11   *event-type*
+2               ``EU16``                        *padding*
+4               ``EU32``                        *device-origin*
+4               ``EU32``                        *button-number*
+=============== ==================== ========== =======================
+
+The possible values for *event-type* are: 10 - pointer button press and
+11 - pointer button release.
+
+*device-origin* is the handle retrieved with a prior device creation
+request.
+
+*button-number* 1 is the primary or left button, *button-number* 2 is
+the secondary or right button and *button-number* 3 is the tertiary or
+middle button. Other values for *button-number* are also valid.
+
+``VALUATOR_EVENT`` is:
+
+=============== ================= ================== ==================
+No. of bytes    Type              [Value]            Description
+=============== ================= ================== ==================
+1               ``U8``            16 + 4 * *count*   *event-size*
+1               ``U8``            12 or 13           *event-type*
+2               ``EU16``                             *padding*
+4               ``EU32``                             *device-origin*
+4               ``EU32``                             *first*
+4               ``EU32``                             *count*
+4 * *count*     ``ES32`` array                       *value*
+=============== ================= ================== ==================
+
+The possible values for *event-type* are: 12 - relative valuator and
+13 - absolute valuator.
+
+*device-origin* is the handle retrieved with a prior device creation
+request.
+
+The event reports *count* valuators starting with *first*.
+
 Server to Client Messages
 +++++++++++++++++++++++++
 
@@ -791,7 +1063,7 @@ Number      Name
 =========== ===========================================================
 255         Anthony Liguori
 254, 127    VMWare
-253         gii
+253         gii (General Input Interface)
 252         tight
 250         Colin Dean xvp
 =========== ===========================================================
@@ -889,6 +1161,52 @@ No. of bytes    Type                 [Value]    Description
 *length*        ``U8`` array                    *text*
 =============== ==================== ========== =======================
 
+gii (General Input Interface)
+-----------------------------
+
+Version
+~~~~~~~
+
+The server response from a with server *gii* capabilities to a client
+declaring *gii* capabilities is a *gii* version message:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               253        *message-type*
+1               ``SUB_TYPE``         1 or 129   *endian-and-sub-type*
+2               ``EU16``             4          *length*
+2               ``EU16``             1          *maximum-version*
+2               ``EU16``             1          *minimum-version*
+=============== ==================== ========== =======================
+
+*endian-and-sub-type* is a bit-field with the leftmost bit indicating
+big endian if set, and little endian if cleared. The rest of the bits
+are the actual message sub type.
+
+Device Creation Response
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The server response to a *gii* Device Creation request from the client
+is the following response:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               253        *message-type*
+1               ``SUB_TYPE``         2 or 130   *endian-and-sub-type*
+2               ``EU16``             4          *length*
+4               ``EU32``                        *device-origin*
+=============== ==================== ========== =======================
+
+*endian-and-sub-type* is a bit-field with the leftmost bit indicating
+big endian if set, and little endian if cleared. The rest of the bits
+are the actual message sub type.
+
+*device-origin* is used as a handle to the device in subsequent
+communications. A *device-origin* of zero indicates device creation
+failure.
+
 Encodings
 +++++++++
 
@@ -904,6 +1222,7 @@ Number      Name
 16          ZRLE
 -239        Cursor pseudo-encoding
 -223        DesktopSize pseudo-encoding
+-305        gii (General Input Interface)
 =========== ===========================================================
 
 Other registered encodings are:
@@ -922,7 +1241,6 @@ Number                      Name
 -240 to -256                tight options
 -257 to -272                Anthony Liguori
 -273 to -304                VMWare
--305                        gii
 -306                        popa
 -307                        Peter Astrand DesktopName
 -308                        Pierre Ossman ExtendedDesktopSize
@@ -1317,3 +1635,18 @@ rectangle in an update. The pseudo-rectangle's *x-position* and
 width and height of the framebuffer. There is no further data
 associated with the pseudo-rectangle.
 
+gii (General Input Interface) Pseudo-encoding
+---------------------------------------------
+
+A client which requests the *gii* pseudo-encoding is declaring that it
+is capable of accepting the *gii* server-to-client message. The server
+declares that it is capable of accepting the *gii* client-to-server
+messages by sending a *gii* server-to-client message of subtype
+*version*.
+
+Requesting the *gii* pseudo-encoding is the first step when a client
+wants to use the *gii* extension of the RFB protocol. The *gii*
+extension is used to provide a more powerful input protocol for cases
+where the standard input model is insufficient. It supports relative
+mouse movements, mouses with more than 8 buttons and mouses with more
+than three axes. It even supports joysticks and gamepads.
