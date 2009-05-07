@@ -292,8 +292,8 @@ The security types defined in this document are:
 Number      Name
 =========== ===========================================================
 0           Invalid
-1           None
-2           VNC Authentication
+1           `None`_
+2           `VNC Authentication`_
 =========== ===========================================================
 
 Other registered security types are:
@@ -490,12 +490,12 @@ The client to server message types that all servers must support are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
-0           SetPixelFormat
-2           SetEncodings
-3           FramebufferUpdateRequest
-4           KeyEvent
-5           PointerEvent
-6           ClientCutText
+0           `SetPixelFormat`_
+2           `SetEncodings`_
+3           `FramebufferUpdateRequest`_
+4           `KeyEvent`_
+5           `PointerEvent`_
+6           `ClientCutText`_
 =========== ===========================================================
 
 Optional message types are:
@@ -505,7 +505,7 @@ Number      Name
 =========== ===========================================================
 255         Anthony Liguori
 254, 127    VMWare
-253         gii (General Input Interface)
+253         `gii (General Input Interface) Client Message`_
 252         tight
 251         Pierre Ossman SetDesktopSize
 250         Colin Dean xvp
@@ -780,8 +780,8 @@ No. of bytes    Type                 [Value]    Description
 *length*        ``U8`` array                    *text*
 =============== ==================== ========== =======================
 
-gii (General Input Interface)
------------------------------
+gii (General Input Interface) Client Message
+--------------------------------------------
 
 Version
 ~~~~~~~
@@ -1050,10 +1050,10 @@ The server to client message types that all clients must support are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
-0           FramebufferUpdate
-1           SetColourMapEntries
-2           Bell
-3           ServerCutText
+0           `FramebufferUpdate`_
+1           `SetColourMapEntries`_
+2           `Bell`_
+3           `ServerCutText`_
 =========== ===========================================================
 
 Optional message types are:
@@ -1063,7 +1063,7 @@ Number      Name
 =========== ===========================================================
 255         Anthony Liguori
 254, 127    VMWare
-253         gii (General Input Interface)
+253         `gii (General Input Interface) Server Message`_
 252         tight
 250         Colin Dean xvp
 =========== ===========================================================
@@ -1161,8 +1161,8 @@ No. of bytes    Type                 [Value]    Description
 *length*        ``U8`` array                    *text*
 =============== ==================== ========== =======================
 
-gii (General Input Interface)
------------------------------
+gii (General Input Interface) Server Message
+--------------------------------------------
 
 Version
 ~~~~~~~
@@ -1215,14 +1215,14 @@ The encodings defined in this document are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
-0           Raw
-1           CopyRect
-2           RRE
-5           Hextile
-16          ZRLE
--239        Cursor pseudo-encoding
--223        DesktopSize pseudo-encoding
--305        gii (General Input Interface)
+0           `Raw Encoding`_
+1           `CopyRect Encoding`_
+2           `RRE Encoding`_
+5           `Hextile Encoding`_
+16          `ZRLE Encoding`_
+-239        `Cursor Pseudo-encoding`_
+-223        `DesktopSize Pseudo-encoding`_
+-305        `gii (General Input Interface) Pseudo-encoding`_
 =========== ===========================================================
 
 Other registered encodings are:
