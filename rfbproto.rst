@@ -307,6 +307,7 @@ Number      Name
 17          Ultra
 18          TLS
 19          VeNCrypt
+20          SASL
 =========== ===========================================================
 
 Once the *security-type* has been decided, data specific to that
