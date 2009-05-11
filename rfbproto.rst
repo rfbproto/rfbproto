@@ -1221,6 +1221,7 @@ Number      Name
 2           `RRE Encoding`_
 4           `CoRRE Encoding`_
 5           `Hextile Encoding`_
+6           `zlib Encoding`_
 16          `ZRLE Encoding`_
 -239        `Cursor Pseudo-encoding`_
 -223        `DesktopSize Pseudo-encoding`_
@@ -1232,7 +1233,6 @@ Other registered encodings are:
 =========================== ===========================================
 Number                      Name
 =========================== ===========================================
-6                           zlib
 7                           tight
 8                           zlibhex
 15                          TRLE
@@ -1483,6 +1483,26 @@ bits of *x-and-y-position* specify the X position, the
 least-significant specify the Y position. The most-significant four
 bits of *width-and-height* specify the width minus one, the
 least-significant specify the height minus one.
+
+zlib Encoding
+-------------
+
+The zlib encoding uses zlib [#]_ to compress rectangles encoded
+according to the `Raw Encoding`_. A single zlib "stream" object is used
+for a given RFB connection, so that zlib rectangles must be encoded and
+decoded strictly in order.
+
+.. [#] see http://www.gzip.org/zlib/
+
+=============== =================== ===================================
+No. of bytes    Type                Description
+=============== =================== ===================================
+4               ``U32``             *length*
+*length*        ``U8`` array        *zlibData*
+=============== =================== ===================================
+
+The *zlibData*, when uncompressed, represents a rectangle according to
+the `Raw Encoding`_.
 
 ZRLE Encoding
 -------------
