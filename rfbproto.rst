@@ -1539,6 +1539,13 @@ significant 3 bytes. In this case a ``CPIXEL`` is only 3 bytes long,
 and contains the least significant or the most significant 3 bytes as
 appropriate. *bytesPerCPixel* is the number of bytes in a ``CPIXEL``.
 
+Note that for the corner case where *bits-per-pixel* is 32 and *depth*
+is 16 or less (this is a corner case, since the client is **much**
+better off using 16 or even 8 *bits-per-pixels*) a ``CPIXEL`` is still
+3 bytes long. By convention, the three least significant bytes are used
+when both the three least and the three most significant bytes would
+cover the used bits.
+
 Each tile begins with a *subencoding* type byte. The top bit of this
 byte is set if the tile has been run-length encoded, clear otherwise.
 The bottom seven bits indicate the size of the palette used: zero means
