@@ -1219,6 +1219,7 @@ Number      Name
 0           `Raw Encoding`_
 1           `CopyRect Encoding`_
 2           `RRE Encoding`_
+4           `CoRRE Encoding`_
 5           `Hextile Encoding`_
 16          `ZRLE Encoding`_
 -239        `Cursor Pseudo-encoding`_
@@ -1231,7 +1232,6 @@ Other registered encodings are:
 =========================== ===========================================
 Number                      Name
 =========================== ===========================================
-4                           CoRRE
 6                           zlib
 7                           tight
 8                           zlibhex
@@ -1335,6 +1335,41 @@ No. of bytes    Type                Description
 2               ``U16``             *y-position*
 2               ``U16``             *width*
 2               ``U16``             *height*
+=============== =================== ===================================
+
+CoRRE Encoding
+--------------
+
+CoRRE stands for *compressed rise-and-run-length encoding* and as its
+name implies, it is a variant of the above `RRE Encoding`_ and as such
+essentially a two-dimensional analogue of run-length encoding.
+
+The only difference between CoRRE and RRE is that the position, width
+and height of the subrectangles are limited to a maximum of 255 pixels.
+Because of this, the server needs to produce several rectangles in
+order to cover a larger area. The `Hextile Encoding`_ is probably a
+better choice in the majority of cases.
+
+On the wire, the data begins with the header:
+
+=============== =================== ===================================
+No. of bytes    Type                Description
+=============== =================== ===================================
+4               ``U32``             *number-of-subrectangles*
+*bytesPerPixel* ``PIXEL``           *background-pixel-value*
+=============== =================== ===================================
+
+This is followed by *number-of-subrectangles* instances of the
+following structure:
+
+=============== =================== ===================================
+No. of bytes    Type                Description
+=============== =================== ===================================
+*bytesPerPixel* ``PIXEL``           *subrect-pixel-value*
+1               ``U8``              *x-position*
+1               ``U8``              *y-position*
+1               ``U8``              *width*
+1               ``U8``              *height*
 =============== =================== ===================================
 
 Hextile Encoding
