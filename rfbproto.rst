@@ -1222,6 +1222,7 @@ Number      Name
 4           `CoRRE Encoding`_
 5           `Hextile Encoding`_
 6           `zlib Encoding`_
+8           `zlibhex Encoding`_
 16          `ZRLE Encoding`_
 -239        `Cursor Pseudo-encoding`_
 -223        `DesktopSize Pseudo-encoding`_
@@ -1234,7 +1235,6 @@ Other registered encodings are:
 Number                      Name
 =========================== ===========================================
 7                           tight
-8                           zlibhex
 15                          TRLE
 17                          Hitachi ZYWRLE
 -1 to -222
@@ -1503,6 +1503,52 @@ No. of bytes    Type                Description
 
 The *zlibData*, when uncompressed, represents a rectangle according to
 the `Raw Encoding`_.
+
+zlibhex Encoding
+----------------
+
+The zlibhex encoding uses zlib [#]_ to optionally compress
+subrectangles according to the `Hextile Encoding`_. Refer to the
+hextile encoding for information on how the rectangle is divided into
+subrectangles and other basic properties of subrectangles. One zlib
+"stream" object is used for subrectangles encoded according to the
+**Raw** subencoding and one zlib "stream" object is used for all other
+subrectangles.
+
+.. [#] see http://www.gzip.org/zlib/
+
+The hextile subencoding bitfield is extended with these bits:
+
+=============== ======= =========== ===================================
+No. of bytes    Type    [Value]     Description
+=============== ======= =========== ===================================
+1               ``U8``              *subencoding-mask*:
+..                      32          **ZlibRaw**
+..                      64          **Zlib**
+=============== ======= =========== ===================================
+
+If either of the **ZlibRaw** or the **Zlib** bit is set, the
+subrectangle is compressed using zlib, like this:
+
+=============== =================== ===================================
+No. of bytes    Type                Description
+=============== =================== ===================================
+2               ``U16``             *length*
+*length*        ``U8`` array        *zlibData*
+=============== =================== ===================================
+
+Like the **Raw** bit in hextile, the **ZlibRaw** bit in zlibhex cancels
+all other bits and the subrectangle is encoded using the first zlib
+"stream" object. The *zlibData*, when uncompressed, should in this case
+be interpreted as the **Raw** data in the hextile encoding.
+
+If the **Zlib** bit is set, the rectangle is encoded using the second
+zlib "stream" object. The *zlibData*, when uncompressed, represents a
+plain hextile rectangle according to the lower 5 bits in the
+subencoding.
+
+If neither the **ZlibRaw** nor the **Zlib** bit is set, the
+subrectangle follows the rules described in the `Hextile Encoding`_.
 
 ZRLE Encoding
 -------------
