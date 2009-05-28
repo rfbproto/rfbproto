@@ -69,6 +69,56 @@ client and/or network, transient states of the framebuffer can be
 ignored, resulting in less network traffic and less drawing for the
 client.
 
+Screen Model
+++++++++++++
+
+In its simplest form, the RFB protocol uses a single, rectangular
+framebuffer. All updates are contained within this buffer and may not
+extend outside of it. A client with basic functionality simply presents
+this buffer to the user, padding or cropping it as necessary to fit
+the user's display.
+
+More advanced RFB clients and servers have the ability to extend this
+model and add multiple screens. The purpose being to create a
+server-side representation of the client's physical layout.
+Applications can use this information to properly position themselves
+with regard to screen borders.
+
+In the multiple-screen model, there is still just a single framebuffer
+and framebuffer updates are unaffected by the screen layout. This
+assures compatibility between basic clients and advanced servers.
+Screens are added to this model and act like viewports into the
+framebuffer. A basic client acts as if there is a single screen
+covering the entire framebuffer.
+
+The server may support up to 255 screens, which must be contained fully
+within the current framebuffer. Multiple screens may overlap partially
+or completely.
+
+The client must keep track of the contents of the entire framebuffer,
+not just the areas currently covered by a screen. Similarly, the server
+is free to use encodings that rely on contents currently not visible
+inside any screen. For example it may issue a *CopyRect* rectangle from
+any part of the framebuffer that should already be known to the client.
+
+The client can request changes to the framebuffer size and screen
+layout. The server is free to approve or deny these requests at will,
+but must always inform the client of the result. See the
+`SetDesktopSize`_ message for details.
+
+If the framebuffer size changes, for whatever reason, then all data in
+it is invalidated and considered undefined. The server must not use
+any encoding that relies on the previous framebuffer contents. Note
+however that the semantics for *DesktopSize* are not well-defined and
+do not follow this behaviour in all server implementations. See the
+`DesktopSize Pseudo-encoding`_ chapter for full details.
+
+Changing only the screen layout does not affect the framebuffer
+contents. The client must therefore keep track of the current
+framebuffer dimensions and compare it with the one received in the
+*ExtendedDesktopSize* rectangle. Only when they differ may it discard
+the framebuffer contents.
+
 Input Protocol
 ==============
 
@@ -508,7 +558,7 @@ Number      Name
 254, 127    VMWare
 253         `gii Client Message`_
 252         tight
-251         Pierre Ossman SetDesktopSize
+251         `SetDesktopSize`_
 250         Colin Dean xvp
 =========== ===========================================================
 
@@ -1058,6 +1108,72 @@ request.
 
 The event reports *count* valuators starting with *first*.
 
+SetDesktopSize
+--------------
+
+Requests a change of desktop size. This message is an extension and
+may only be sent if the client has previously received an
+*ExtendedDesktopSize* rectangle.
+
+The server must send an *ExtendedDesktopSize* rectangle for every
+*SetDesktopSize* message received. Several rectangles may be
+sent in a single *FramebufferUpdate* message, but the rectangles must
+not be merged or reordered in any way. Note that rectangles sent for
+other reasons may be interleaved with the ones generated as a result
+of *SetDesktopSize* messages.
+
+Upon a successful request the server must send an *ExtendedDesktopSize*
+rectangle to the requesting client with the exact same information the
+client provided in the corresponding *SetDesktopSize* message.
+*x-position* must be set to 1, indicating a client initiated event, and
+*y-position* must be set to 0, indicating success.
+
+The server must also send an *ExtendedDesktopSize* rectangle to all
+other connected clients, but with *x-position* set to 2, indicating a
+change initiated by another client.
+
+If the server can not or will not satisfy the request, it must send
+an *ExtendedDesktopSize* rectangle to the requesting client with
+*x-position* set to 1 and *y-position* set to the relevant error code.
+All remaining fields are undefined, although the basic structure must
+still be followed. The server must not send an *ExtendedDesktopSize*
+rectangle to any other connected clients.
+
+All *ExtendedDesktopSize* rectangles that are sent as a result of a 
+*SetDesktopSize* message should be sent as soon as possible.
+
+======================== ================= ======= ====================
+No. of bytes             Type              [Value] Description
+======================== ================= ======= ====================
+1                        ``U8``            251     *message-type*
+2                                                  *padding*
+2                        ``U16``                   *width*
+2                        ``U16``                   *height*
+1                        ``U8``                    *number-of-screens*
+1                                                  *padding*
+*number-of-screens* * 16 ``SCREEN`` array          *screens*
+======================== ================= ======= ====================
+
+The *width* and *height* indicates the framebuffer size requested. This
+structure is followed by *number-of-screens* number of ``SCREEN``
+structures, which is defined in `ExtendedDesktopSize Pseudo-encoding`_:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+4               ``U32``                         *id*
+2               ``U16``                         *x-position*
+2               ``U16``                         *y-position*
+2               ``U16``                         *width*
+2               ``U16``                         *height*
+4               ``U32``                         *flags*
+=============== =============================== =======================
+
+The *id* field must be preserved upon modification as it determines the
+difference between a moved screen and a newly created one. The client
+should make every effort to preserve the fields it does not wish to
+modify, including any unknown *flags* bits.
+
 Server to Client Messages
 +++++++++++++++++++++++++
 
@@ -1257,6 +1373,7 @@ Number      Name
 -239        `Cursor Pseudo-encoding`_
 -223        `DesktopSize Pseudo-encoding`_
 -305        `gii Pseudo-encoding`_
+-308        `ExtendedDesktopSize Pseudo-encoding`_
 =========== ===========================================================
 
 Other registered encodings are:
@@ -1274,7 +1391,6 @@ Number                      Name
 -273 to -304                VMWare
 -306                        popa
 -307                        Peter Astrand DesktopName
--308                        Pierre Ossman ExtendedDesktopSize
 -309                        Colin Dean xvp
 0x574d5600 to 0x574d56ff    VMWare
 =========================== ===========================================
@@ -1844,3 +1960,133 @@ extension is used to provide a more powerful input protocol for cases
 where the standard input model is insufficient. It supports relative
 mouse movements, mouses with more than 8 buttons and mouses with more
 than three axes. It even supports joysticks and gamepads.
+
+ExtendedDesktopSize Pseudo-encoding
+-----------------------------------
+
+A client which requests the *ExtendedDesktopSize* pseudo-encoding is
+declaring that it is capable of coping with a change in the
+framebuffer width, height, and/or screen configuration. This encoding
+is used in conjunction with the *SetDesktopSize* message. If a server
+supports the *ExtendedDesktopSize* encoding, it must also have basic
+support for the *SetDesktopSize* message although it may deny all
+requests to change the screen layout.
+
+The *ExtendedDesktopSize* pseudo-encoding is designed to replace the
+simpler *DesktopSize* one. Servers and clients should support both for
+maximum compatibility, but a server must only send the extended
+version to a client asking for both. The semantics of *DesktopSize* are
+not as well-defined as for *ExtendedDesktopSize* and handling both at
+the same time would require needless complexity in the client.
+
+The server must send an *ExtendedDesktopSize* rectangle in response to
+a *FramebufferUpdateRequest* with *incremental* set to zero, assuming
+the client has requested the *ExtendedDesktopSize* pseudo-encoding
+using the *SetEncodings* message. This requirement is needed so that
+the client has a reliable way of fetching the initial screen
+configuration, and to determine if the server supports the
+*SetDesktopSize* message.
+
+A consequence of this is that a client must not respond to an
+*ExtendedDesktopSize* rectangle by sending a *FramebufferUpdateRequest*
+with *incremental* set to zero. Doing so would make the system go into
+an infinite loop.
+
+The server must also send an *ExtendedDesktopSize* rectangle in
+response to a *SetDesktopSize* message, indicating the result.
+
+For a full description of server behaviour as a result of the
+*SetDesktopSize* message, `SetDesktopSize`_.
+
+Rectangles sent as a result of a *SetDesktopSize* message must be sent
+as soon as possible. Rectangles sent for other reasons may be subjected
+to delays imposed by the server.
+
+An update containing an *ExtendedDesktopSize* rectangle must not
+contain any changes to the framebuffer data, neither before nor after
+the *ExtendedDesktopSize* rectangle.
+
+The pseudo-rectangle's *x-position* indicates the reason for the
+change:
+
+0
+    The screen layout was changed via non-RFB means on the server. For
+    example the server may have provided means for server-side
+    applications to manipulate the screen layout. This code is also
+    used when the client sends a non-incremental
+    *FrameBufferUpdateRequest* to learn the server's current state.
+
+1
+    The client receiving this message requested a change of the screen
+    layout. The change may or may not have happened depending on server
+    policy or available resources. The status code in the *y-position*
+    field must be used to determine which.
+
+2
+    Another client requested a change of the screen layout and the
+    server approved it. A rectangle with this code is never sent if the
+    server denied the request.
+
+More reasons may be added in the future. Clients should treat an
+unknown value as a server-side change (i.e. as if *x-position* was set
+to zero).
+
+The pseudo-rectangle's *y-position* indicates the status code for a
+change requested by a client:
+
+======= ===============================================================
+Code    Description
+======= ===============================================================
+0       No error
+1       Resize is administratively prohibited
+2       Out of resources
+3       Invalid screen layout
+======= ===============================================================
+
+This field shall be set to zero by the server and ignored by clients
+when not defined. Other error codes may be added in the future and
+clients must treat them as an unknown failure.
+
+The *width* and *height* indicates the new width and height of the
+framebuffer.
+
+The encoding data is defined as:
+
+=========================== =================== =======================
+No. of bytes                Type                Description
+=========================== =================== =======================
+1                           ``U8``              *number-of-screens*
+3                                               *padding*
+*number-of-screens* * 16    ``SCREEN`` array    *screens*
+=========================== =================== =======================
+
+The *number-of-screens* field indicates the number of active screens
+and allows for multi head configurations. It also indicates how many
+``SCREEN`` structures that follows. These are defined as:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+4               ``U32``                         *id*
+2               ``U16``                         *x-position*
+2               ``U16``                         *y-position*
+2               ``U16``                         *width*
+2               ``U16``                         *height*
+4               ``U32``                         *flags*
+=============== =============================== =======================
+
+The *id* field contains an arbitrary value that the server and client
+can use to map RFB screens to physical screens. The value must be
+unique in the current set of screens and must be preserved for the
+lifetime of that RFB screen. New ids are assigned by whichever side
+creates the screen. An *id* may be reused if there has been a subsequent
+update of the screen layout where the *id* was not used.
+
+The *flags* field is currently unused. Clients and servers must ignore,
+but preserve, any bits it does not understand. For new screens, those
+bits must be set to zero.
+
+Note that a simple client which does not support multi head does not
+need to parse the list of screens and can simply display the entire
+framebuffer.
+
