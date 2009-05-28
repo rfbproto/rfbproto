@@ -1737,12 +1737,67 @@ DesktopSize Pseudo-encoding
 
 A client which requests the *DesktopSize* pseudo-encoding is declaring
 that it is capable of coping with a change in the framebuffer width
-and/or height. The server changes the desktop size by sending a
-pseudo-rectangle with the *DesktopSize* pseudo-encoding as the last
-rectangle in an update. The pseudo-rectangle's *x-position* and
-*y-position* are ignored, and *width* and *height* indicate the new
+and/or height.
+  
+The server changes the desktop size by sending a pseudo-rectangle with
+the *DesktopSize* pseudo-encoding. The pseudo-rectangle's *x-position*
+and *y-position* are ignored, and *width* and *height* indicate the new
 width and height of the framebuffer. There is no further data
 associated with the pseudo-rectangle.
+
+The semantics of the *DesktopSize* pseudo-encoding were originally not
+clearly defined and as a results there are multiple differing
+implementations in the wild. Both the client and server need to take
+special steps to ensure maximum compatibility.
+
+In the initial implementation the *DesktopSize* pseudo-rectangle was
+sent in its own update without any modifications to the framebuffer
+data. The client would discard the framebuffer contents upon receiving
+this pseudo-rectangle and the server would consider the entire
+framebuffer to be modified.
+
+The semantics defined here retain compatibility with both of two older
+implementations.
+
+Server Semantics
+~~~~~~~~~~~~~~~~
+
+The update containing the pseudo-rectangle should not contain any
+rectangles that change the framebuffer data as that will most likely be
+discarded by the client and will have to be resent later.
+
+The server should assume that the client discards the framebuffer data
+when receiving a *DesktopSize* pseudo-rectangle. It should therefore
+not use any encoding that relies on the previous contents of the
+framebuffer. The server should also consider the entire framebuffer to
+be modified.
+
+Some early client implementations require the *DesktopSize*
+pseudo-rectangle to be the very last rectangle in an update. Servers
+should make every effort to support these.
+
+The server should only send a *DesktopSize* pseudo-rectangle when an
+actual change of the framebuffer dimensions has occurred. Some clients
+respond to a *DesktopSize* pseudo-rectangle in a way that could send
+the system into an infinite loop if the server sent out the
+pseudo-rectangle for anything other than an actual change.
+
+Client Semantics
+~~~~~~~~~~~~~~~~
+
+The client should assume that the server expects the framebuffer data
+to be retained when the framebuffer dimensions change. This requirement
+can be satisfied either by actually retaining the framebuffer data, or
+by making sure that *incremental* is set to non-zero in the next
+*FramebufferUpdateRequest*.
+
+The principle of one framebuffer update being a transition from one
+valid state to another does not hold for updates with the *DesktopSize*
+pseudo-rectangle as the framebuffer contents can temporarily be
+partially or completely undefined. Clients should try to handle this
+gracefully, e.g. by showing a black framebuffer or delay the screen
+update until a proper update of the framebuffer contents has been
+received.
 
 gii (General Input Interface) Pseudo-encoding
 ---------------------------------------------
