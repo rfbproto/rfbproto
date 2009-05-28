@@ -81,7 +81,7 @@ example, a pen-based handwriting recognition engine might generate
 keyboard events.
 
 If you have an input source that does not fit this standard workstation
-model, the Generial Input Interface (gii) protocol extension provides
+model, the General Input Interface (gii) protocol extension provides
 possibilities for input sources with more axes, relative movement and
 more buttons.
 
@@ -506,7 +506,7 @@ Number      Name
 =========== ===========================================================
 255         Anthony Liguori
 254, 127    VMWare
-253         `gii (General Input Interface) Client Message`_
+253         `gii Client Message`_
 252         tight
 251         Pierre Ossman SetDesktopSize
 250         Colin Dean xvp
@@ -792,8 +792,12 @@ No. of bytes    Type                 [Value]    Description
 *length*        ``U8`` array                    *text*
 =============== ==================== ========== =======================
 
-gii (General Input Interface) Client Message
---------------------------------------------
+gii Client Message
+------------------
+
+This message is an extension and may only be sent if the client has
+previously received a `gii Server Message`_ confirming that the server
+supports the General Input Interface extension.
 
 Version
 ~~~~~~~
@@ -1075,7 +1079,7 @@ Number      Name
 =========== ===========================================================
 255         Anthony Liguori
 254, 127    VMWare
-253         `gii (General Input Interface) Server Message`_
+253         `gii Server Message`_
 252         tight
 250         Colin Dean xvp
 =========== ===========================================================
@@ -1183,8 +1187,13 @@ No. of bytes    Type                 [Value]    Description
 *length*        ``U8`` array                    *text*
 =============== ==================== ========== =======================
 
-gii (General Input Interface) Server Message
---------------------------------------------
+gii Server Message
+------------------
+
+This message is an extension and may only be sent if the server has
+previously received a `SetEncodings`_ message confirming that the
+client supports the General Input Interface extension via the `gii
+Pseudo-encoding`_.
 
 Version
 ~~~~~~~
@@ -1247,7 +1256,7 @@ Number      Name
 16          `ZRLE Encoding`_
 -239        `Cursor Pseudo-encoding`_
 -223        `DesktopSize Pseudo-encoding`_
--305        `gii (General Input Interface) Pseudo-encoding`_
+-305        `gii Pseudo-encoding`_
 =========== ===========================================================
 
 Other registered encodings are:
@@ -1820,14 +1829,14 @@ gracefully, e.g. by showing a black framebuffer or delay the screen
 update until a proper update of the framebuffer contents has been
 received.
 
-gii (General Input Interface) Pseudo-encoding
----------------------------------------------
+gii Pseudo-encoding
+-------------------
 
-A client which requests the *gii* pseudo-encoding is declaring that it
-is capable of accepting the *gii* server-to-client message. The server
-declares that it is capable of accepting the *gii* client-to-server
-messages by sending a *gii* server-to-client message of subtype
-*version*.
+A client that supports the General Input Interface extension starts by
+requesting the *gii* pseudo-encoding declaring that it is capable of
+accepting the `gii Server Message`_. The server, in turn, declares that
+it is capable of accepting the `gii Client Message`_ by sending a `gii
+Server Message`_ of subtype *version*.
 
 Requesting the *gii* pseudo-encoding is the first step when a client
 wants to use the *gii* extension of the RFB protocol. The *gii*
