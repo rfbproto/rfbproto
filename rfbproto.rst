@@ -532,6 +532,11 @@ the colour map using the *SetColourMapEntries* message
 message the colour map is empty, even if entries had previously been
 set by the server.
 
+Note that a client must not have an outstanding
+*FramebufferUpdateRequest* when it sends *SetPixelFormat* as it would
+be impossible to determine if the next *FramebufferUpdate* is using the
+new or the previous pixel format.
+
 =============== ==================== ========== =======================
 No. of bytes    Type                 [Value]    Description
 =============== ==================== ========== =======================
@@ -636,6 +641,12 @@ No. of bytes    Type                 [Value]    Description
 2               ``U16``                         *width*
 2               ``U16``                         *height*
 =============== ==================== ========== =======================
+
+A request for an area that partly falls outside the current framebuffer
+must be cropped so that it fits within the framebuffer dimensions.
+
+Note that an empty area can still solicit a *FramebufferUpdate* even
+though that update will only contain pseudo-encodings.
 
 KeyEvent
 --------
@@ -1107,6 +1118,16 @@ No. of bytes    Type                            Description
 followed by the pixel data in the specified encoding. See `Encodings`_
 for the format of the data for each encoding and `Pseudo-encodings`_
 for the meaning of pseudo-encodings.
+
+Note that a framebuffer update marks a transition from one valid
+framebuffer state to another. That means that a single update handles
+all received *FramebufferUpdateRequest* up to the point where the
+update is sent out.
+
+However, because there is no strong connection between a
+*FramebufferUpdateRequest* and a subsequent *FramebufferUpdate*, a
+client that has more than one *FramebufferUpdateRequest* pending at any
+given time cannot be sure that it has received all framebuffer updates.
 
 SetColourMapEntries
 -------------------
