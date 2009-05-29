@@ -344,6 +344,7 @@ Number      Name
 0           Invalid
 1           `None`_
 2           `VNC Authentication`_
+16          `Tight Security Type`_
 =========== ===========================================================
 
 Other registered security types are:
@@ -353,7 +354,6 @@ Number      Name
 =========== ===========================================================
 5           RA2
 6           RA2ne
-16          Tight
 17          Ultra
 18          TLS
 19          VeNCrypt
@@ -381,7 +381,10 @@ No. of bytes    Type    [Value]     Description
 4               ``U32``             status:
 ..                      0           OK
 ..                      1           failed
+..                      2           failed, too many attempts [#]_
 =============== ======= =========== ===================================
+
+.. [#] Only valid if the `Tight Security Type`_ is enabled.
 
 If successful, the protocol passes to the initialisation phase
 (`Initialisation Messages`_).
@@ -438,6 +441,138 @@ No. of bytes    Type    Description
 =============== ======= ===============================================
 
 The protocol continues with the *SecurityResult* message.
+
+Tight Security Type
+-------------------
+
+The Tight security type is a generic protocol extension that allows for
+three things:
+
+Tunneling of data
+    A tunnel can be e.g. encryption, or indeed a no-op tunnel.
+
+Authentication
+    The Tight security type allows for flexible authentication of the
+    client, which is typically one of the other security types.
+
+Server capabilities
+    As a last step the Tight security type extends the `ServerInit`_
+    message and enables the server to let the client know about the
+    server capabilities in terms of encodings and supported message
+    types.
+
+The Tight security type is under the control of the TightVNC project,
+and any new numbers must be registered with that project before they
+can be added to any of the lists of Tight capabilities. It is strongly
+recommended that any messages and security types registered with
+RealVNC are also registered with the TightVNC project (register
+security types as Tight authentication capabilities) in order to
+eliminate clashes as much as is possible. Same thing with new
+encodings, but in that case the problem is not as severe as the
+TightVNC project are not using any encodings that are not registered
+with RealVNC. Please see the TightVNC website at
+http://www.tightvnc.com/ for details on how to contact the project.
+
+After the Tight security type has been selected, the server starts by
+sending a list of supported tunnels, in order of preference:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+4               ``U32``                         *number-of-tunnels*
+=============== =============================== =======================
+
+followed by *number-of-tunnels* repetitions of the following:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+16              ``CAPABILITY``                  *tunnel*
+=============== =============================== =======================
+
+where ``CAPABILITY`` is
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+4               ``S32``                         *code*
+4               ``U8`` array                    *vendor*
+8               ``U8`` array                    *signature*
+=============== =============================== =======================
+
+Note that the *code* is not the only thing identifying a capability.
+The client must ensure that all members of the structure match before
+using the capability. Also note that *code* is ``U32`` in the original
+Tight documentation and implementation, but since *code* is used to
+hold encoding numbers we have selected ``S32`` in this document.
+
+The following tunnel capabilities are registered:
+
+======= =========== =============== ===================================
+Code    Vendor      Signature       Description
+======= =========== =============== ===================================
+0       "``TGHT``"  "``NOTUNNEL``"  No tunneling
+======= =========== =============== ===================================
+
+If *number-of-tunnels* is non-zero, the client has to request a tunnel
+from the list with a tunneling method request:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+4               ``S32``                         *code*
+=============== =============================== =======================
+
+If *number-of-tunnels* is zero, the client must make no such request,
+instead the server carries on with sending the list of supported
+authentication types, in order of preference:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+4               ``U32``                         *number-of-auth-types*
+=============== =============================== =======================
+
+followed by *number-of-auth-types* repetitions of the following:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+16              ``CAPABILITY``                  *auth-type*
+=============== =============================== =======================
+
+The following authentication capabilities are registered:
+
+======= =========== =============== ===================================
+Code    Vendor      Signature       Description
+======= =========== =============== ===================================
+1       "``STDV``"  "``NOAUTH__``"  `None`_
+2       "``STDV``"  "``VNCAUTH_``"  `VNC Authentication`_
+19      "``VENC``"  "``VENCRYPT``"  VeNCrypt Security
+20      "``GTKV``"  "``SASL____``"  Simple Authentication and Security
+                                    Layer (SASL)
+129     "``TGHT``"  "``ULGNAUTH``"  Unix Login Authentication
+130     "``TGHT``"  "``XTRNAUTH``"  External Authentication
+======= =========== =============== ===================================
+
+If *number-of-auth-types* is non-zero, the client has to request an
+authentication type from the list with an authentication scheme
+request:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+4               ``S32``                         *code*
+=============== =============================== =======================
+
+For *code* 1, the protocol the proceeds at security type `None`_ and
+for *code* 2 it proceeds at security type `VNC Authentication`_.
+
+If *number-of-auth-types* is zero, the protocol the proceeds directly
+at security type `None`_.
+
+Note that the `ServerInit`_ message is extended when the Tight security
+type has been activated.
 
 Initialisation Messages
 +++++++++++++++++++++++
@@ -532,6 +667,100 @@ which are not directly composed from the red, green and blue
 intensities, but which serve as indices into a colour map. Entries in
 the colour map are set by the server using the *SetColourMapEntries*
 message (`SetColourMapEntries`_).
+
+If the `Tight Security Type`_ is activated, the server init message is
+extended with an interaction capabilities section:
+
+=============== =========== ========== ================================
+No. of bytes    Type        [Value]    Description
+=============== =========== ========== ================================
+2               ``U16``                *number-of-server-messages*
+2               ``U16``                *number-of-client-messages*
+2               ``U16``                *number-of-encodings*
+2               ``U16``     0          *padding*
+=============== =========== ========== ================================
+
+followed by *number-of-server-messages* repetitions of the following:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+16              ``CAPABILITY``                  *server-message*
+=============== =============================== =======================
+
+followed by *number-of-client-messages* repetitions of the following:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+16              ``CAPABILITY``                  *client-message*
+=============== =============================== =======================
+
+followed by *number-of-encodings* repetitions of the following:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+16              ``CAPABILITY``                  *encoding*
+=============== =============================== =======================
+
+The following *server-message* capabilities are registered:
+
+======= =========== =============== ===================================
+Code    Vendor      Signature       Description
+======= =========== =============== ===================================
+130     "``TGHT``"  "``FTS_LSDT``"  File List Data
+131     "``TGHT``"  "``FTS_DNDT``"  File Download Data
+132     "``TGHT``"  "``FTS_UPCN``"  File Upload Cancel
+133     "``TGHT``"  "``FTS_DNFL``"  File Download Failed
+150     "``TGHT``"  "``CUS_EOCU``"  End Of Continuous Updates
+253     "``GGI_``"  "``GII_SERV``"  `gii Server Message`_
+======= =========== =============== ===================================
+
+The following *client-message* capabilities are registered:
+
+======= =========== =============== ===================================
+Code    Vendor      Signature       Description
+======= =========== =============== ===================================
+130     "``TGHT``"  "``FTC_LSRQ``"  File List Request
+131     "``TGHT``"  "``FTC_DNRQ``"  File Download Request
+132     "``TGHT``"  "``FTC_UPRQ``"  File Upload Request
+133     "``TGHT``"  "``FTC_UPDT``"  File Upload Data
+134     "``TGHT``"  "``FTC_DNCN``"  File Download Cancel
+135     "``TGHT``"  "``FTC_UPFL``"  File Upload Failed
+136     "``TGHT``"  "``FTC_FCDR``"  File Create Directory Request
+150     "``TGHT``"  "``CUC_ENCU``"  Enable/Disable Continuous Updates
+151     "``TGHT``"  "``VRECTSEL``"  Video Rectangle Selection
+253     "``GGI_``"  "``GII_CLNT``"  `gii Client Message`_
+======= =========== =============== ===================================
+
+The following *encoding* capabilities are registered:
+
+======= =========== =============== ===================================
+Code    Vendor      Signature       Description
+======= =========== =============== ===================================
+0       "``STDV``"  "``RAW_____``"  `Raw Encoding`_
+1       "``STDV``"  "``COPYRECT``"  `CopyRect Encoding`_
+2       "``STDV``"  "``RRE_____``"  `RRE Encoding`_
+4       "``STDV``"  "``CORRE___``"  `CoRRE Encoding`_
+5       "``STDV``"  "``HEXTILE_``"  `Hextile Encoding`_
+6       "``TRDV``"  "``ZLIB____``"  `ZLib Encoding`_
+7       "``TGHT``"  "``TIGHT___``"  Tight Encoding
+8       "``TRDV``"  "``ZLIBHEX_``"  `ZLibHex Encoding`_
+-32     "``TGHT``"  "``JPEGQLVL``"  JPEG Quality Level
+-223    "``TGHT``"  "``NEWFBSIZ``"  `DesktopSize Pseudo-encoding`_ (New
+                                    FB Size)
+-224    "``TGHT``"  "``LASTRECT``"  Last Rect
+-232    "``TGHT``"  "``POINTPOS``"  Pointer Position
+-239    "``TGHT``"  "``RCHCURSR``"  `Cursor Pseudo-encoding`_ (Rich
+                                    Cursor)
+-240    "``TGHT``"  "``X11CURSR``"  X Cursor
+-256    "``TGHT``"  "``COMPRLVL``"  Compression Level
+-305    "``GGI_``"  "``GII_____``"  `gii Pseudo-encoding`_
+======= =========== =============== ===================================
+
+Note that the server need not (but it may) list the "``RAW_____``"
+capability since it must be supported anyway.
 
 Client to Server Messages
 +++++++++++++++++++++++++
