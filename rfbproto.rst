@@ -1543,7 +1543,7 @@ Pseudo-encoding`_.
 Version
 ~~~~~~~
 
-The server response from a with server *gii* capabilities to a client
+The server response from a server with *gii* capabilities to a client
 declaring *gii* capabilities is a *gii* version message:
 
 =============== ==================== ========== =======================
