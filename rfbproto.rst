@@ -943,6 +943,16 @@ No. of bytes    Type                 [Value]    Description
 4               ``U32``                         *key*
 =============== ==================== ========== =======================
 
+Auto repeating of keys when a key is held down should be handled on the
+client. The rationale being that high latency on the network can make
+it seem like a key is being held for a very long time, yet the problem
+is that the *KeyEvent* message releasing the button has been delayed.
+
+The client should send only repeated "down" *KeyEvent* messages, no
+"up" messages, when a key is automatically repeated. This allows the
+server to tell the difference between automatic repeat and actual
+repeated entry by the user.
+
 For most ordinary keys, the "keysym" is the same as the corresponding
 ASCII value. For full details, see The Xlib Reference Manual, published
 by O'Reilly & Associates, or see the header file ``<X11/keysymdef.h>``
