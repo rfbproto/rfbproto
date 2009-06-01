@@ -2141,6 +2141,11 @@ data. The client would discard the framebuffer contents upon receiving
 this pseudo-rectangle and the server would consider the entire
 framebuffer to be modified.
 
+A later implementation sent the *DesktopSize* pseudo-rectangle together
+with modifications to the framebuffer data. It also expected the client
+to retain the framebuffer contents as those modifications could be from
+after the framebuffer resize had occurred on the server.
+
 The semantics defined here retain compatibility with both of two older
 implementations.
 
