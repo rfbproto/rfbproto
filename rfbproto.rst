@@ -1378,7 +1378,7 @@ All remaining fields are undefined, although the basic structure must
 still be followed. The server must not send an *ExtendedDesktopSize*
 rectangle to any other connected clients.
 
-All *ExtendedDesktopSize* rectangles that are sent as a result of a 
+All *ExtendedDesktopSize* rectangles that are sent as a result of a
 *SetDesktopSize* message should be sent as soon as possible.
 
 ======================== ================= ======= ====================
@@ -2123,7 +2123,7 @@ DesktopSize Pseudo-encoding
 A client which requests the *DesktopSize* pseudo-encoding is declaring
 that it is capable of coping with a change in the framebuffer width
 and/or height.
-  
+
 The server changes the desktop size by sending a pseudo-rectangle with
 the *DesktopSize* pseudo-encoding. The pseudo-rectangle's *x-position*
 and *y-position* are ignored, and *width* and *height* indicate the new
@@ -2333,4 +2333,3 @@ bits must be set to zero.
 Note that a simple client which does not support multi head does not
 need to parse the list of screens and can simply display the entire
 framebuffer.
-
