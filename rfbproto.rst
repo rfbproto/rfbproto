@@ -788,7 +788,7 @@ Number      Name
 253         `gii Client Message`_
 252         tight
 251         `SetDesktopSize`_
-250         Colin Dean xvp
+250         `xvp Client Message`_
 =========== ===========================================================
 
 Note that before sending a message with an optional message type a
@@ -1413,6 +1413,27 @@ difference between a moved screen and a newly created one. The client
 should make every effort to preserve the fields it does not wish to
 modify, including any unknown *flags* bits.
 
+xvp Client Message
+------------------
+
+A client supporting the *xvp* extension sends this to request that the
+server initiate a clean shutdown, clean reboot or abrupt reset of the
+system whose framebuffer the client is displaying.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               250        *message-type*
+1                                               *padding*
+1               ``U8``               1          *xvp-extension-version*
+1               ``U8``                          *xvp-message-code*
+=============== ==================== ========== =======================
+
+The possible values for *xvp-message-code* are: 2 - XVP_SHUTDOWN,
+3 - XVP_REBOOT, and 4 - XVP_RESET.  The client must have already
+established that the server supports this extension, by requesting the
+`xvp Pseudo-encoding`_.
+
 Server to Client Messages
 +++++++++++++++++++++++++
 
@@ -1436,7 +1457,7 @@ Number      Name
 254, 127    VMWare
 253         `gii Server Message`_
 252         tight
-250         Colin Dean xvp
+250         `xvp Server Message`_
 =========== ===========================================================
 
 Note that before sending a message with an optional message type a
@@ -1593,6 +1614,36 @@ are the actual message sub type.
 communications. A *device-origin* of zero indicates device creation
 failure.
 
+xvp Server Message
+------------------
+
+This has the following format:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               250        *message-type*
+1                                               *padding*
+1               ``U8``               1          *xvp-extension-version*
+1               ``U8``                          *xvp-message-code*
+=============== ==================== ========== =======================
+
+The possible values for *xvp-message-code* are: 0 - XVP_FAIL and 1 -
+XVP_INIT.
+
+A server which supports the *xvp* extension declares this by sending a
+message with an XVP_INIT *xvp-message-code* when it receives a request
+from the client to use the `xvp Pseudo-encoding`_.  The server must
+specify in this message the highest *xvp-extension-version* it supports:
+the client may assume that the server supports all versions from 1 up to
+this value.  The client is then free to use any supported version.
+Currently, only version 1 is defined.
+
+A server which subsequently receives an `xvp Client Message`_ requesting
+an operation which it is unable to perform, informs the client of this
+by sending a message with an XVP_FAIL *xvp-message-code*, and the same
+*xvp-extension-version* as included in the client's operation request.
+
 Encodings
 +++++++++
 
@@ -1613,6 +1664,7 @@ Number      Name
 -223        `DesktopSize Pseudo-encoding`_
 -305        `gii Pseudo-encoding`_
 -308        `ExtendedDesktopSize Pseudo-encoding`_
+-309        `xvp Pseudo-encoding`_
 =========== ===========================================================
 
 Other registered encodings are:
@@ -1630,7 +1682,6 @@ Number                      Name
 -273 to -304                VMWare
 -306                        popa
 -307                        Peter Astrand DesktopName
--309                        Colin Dean xvp
 0x574d5600 to 0x574d56ff    VMWare
 =========================== ===========================================
 
@@ -2333,3 +2384,12 @@ bits must be set to zero.
 Note that a simple client which does not support multi head does not
 need to parse the list of screens and can simply display the entire
 framebuffer.
+
+xvp Pseudo-encoding
+-------------------
+
+A client which requests the *xvp* pseudo-encoding is declaring that it
+wishes to use the *xvp* extension.  If the server supports this, it
+replies with a message of type `xvp Server Message`_, using an
+*xvp-message-code* of *XVP_INIT*.  This informs the client that it may
+then subsequently send messages of type `xvp Client Message`_.
