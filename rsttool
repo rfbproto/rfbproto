@@ -1,0 +1,27 @@
+#!/bin/bash
+#
+# This is a small wrapper to work around the fact that the
+# docutils tools are named differently in different distributions.
+#
+
+if [ $# -lt 1 ]; then
+  echo "Syntax:"
+  echo "    $0 <tool name> [args...]"
+  exit 1
+fi
+
+TOOL="$1"
+shift
+
+# Upstream name
+if type -t "$TOOL.py" > /dev/null; then
+  exec "$TOOL.py" "$@"
+fi
+
+# "Sanitised" name
+if type -t "$TOOL" > /dev/null; then
+  exec "$TOOL" "$@"
+fi
+
+echo docutils tool $TOOL could not be found
+exit 1
