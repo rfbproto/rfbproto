@@ -750,7 +750,7 @@ Code    Vendor      Signature       Description
 -32     "``TGHT``"  "``JPEGQLVL``"  JPEG Quality Level
 -223    "``TGHT``"  "``NEWFBSIZ``"  `DesktopSize Pseudo-encoding`_ (New
                                     FB Size)
--224    "``TGHT``"  "``LASTRECT``"  Last Rect
+-224    "``TGHT``"  "``LASTRECT``"  `LastRect Pseudo-encoding`_
 -232    "``TGHT``"  "``POINTPOS``"  Pointer Position
 -239    "``TGHT``"  "``RCHCURSR``"  `Cursor Pseudo-encoding`_ (Rich
                                     Cursor)
@@ -1510,6 +1510,8 @@ However, because there is no strong connection between a
 client that has more than one *FramebufferUpdateRequest* pending at any
 given time cannot be sure that it has received all framebuffer updates.
 
+See the `LastRect Pseudo-encoding`_ for an extension to this message.
+
 SetColourMapEntries
 -------------------
 
@@ -1662,6 +1664,7 @@ Number       Name
 8            `zlibhex Encoding`_
 16           `ZRLE Encoding`_
 -223         `DesktopSize Pseudo-encoding`_
+-224         `LastRect Pseudo-encoding`_
 -239         `Cursor Pseudo-encoding`_
 -247 to -256 `Compression Level Pseudo-encoding`_
 -305         `gii Pseudo-encoding`_
@@ -1678,7 +1681,7 @@ Number                      Name
 15                          TRLE
 17                          Hitachi ZYWRLE
 -1 to -222                  Tight options
--224 to -238                Tight options
+-225 to -238                Tight options
 -240 to -246                Tight options
 -257 to -272                Anthony Liguori
 -273 to -304                VMWare
@@ -2241,6 +2244,19 @@ partially or completely undefined. Clients should try to handle this
 gracefully, e.g. by showing a black framebuffer or delay the screen
 update until a proper update of the framebuffer contents has been
 received.
+
+LastRect Pseudo-encoding
+------------------------
+
+A client which requests the *LastRect* pseudo-encoding is declaring
+that it does not need the exact number of rectangles in a
+*FramebufferUpdate* message. Instead, it will stop parsing when it
+reaches a *LastRect* rectangle. A server may thus start transmitting
+the *FramebufferUpdate* message before it knows exactly how many
+rectangles it is going to transmit, and the server typically advertises
+this situation by saying that it is going to send 65535 rectangles,
+but it then stops with a *LastRect* instead of sending all of them.
+There is no further data associated with the pseudo-rectangle.
 
 Compression Level Pseudo-encoding
 ---------------------------------
