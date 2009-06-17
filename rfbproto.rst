@@ -745,7 +745,7 @@ Code    Vendor      Signature       Description
 4       "``STDV``"  "``CORRE___``"  `CoRRE Encoding`_
 5       "``STDV``"  "``HEXTILE_``"  `Hextile Encoding`_
 6       "``TRDV``"  "``ZLIB____``"  `ZLib Encoding`_
-7       "``TGHT``"  "``TIGHT___``"  Tight Encoding
+7       "``TGHT``"  "``TIGHT___``"  `Tight Encoding`_
 8       "``TRDV``"  "``ZLIBHEX_``"  `ZLibHex Encoding`_
 -32     "``TGHT``"  "``JPEGQLVL``"  JPEG Quality Level
 -223    "``TGHT``"  "``NEWFBSIZ``"  `DesktopSize Pseudo-encoding`_ (New
@@ -1661,6 +1661,7 @@ Number       Name
 4            `CoRRE Encoding`_
 5            `Hextile Encoding`_
 6            `zlib Encoding`_
+7            `Tight Encoding`_
 8            `zlibhex Encoding`_
 16           `ZRLE Encoding`_
 -223         `DesktopSize Pseudo-encoding`_
@@ -1677,7 +1678,6 @@ Other registered encodings are:
 =========================== ===========================================
 Number                      Name
 =========================== ===========================================
-7                           Tight
 15                          TRLE
 17                          Hitachi ZYWRLE
 -1 to -222                  Tight options
@@ -1944,6 +1944,197 @@ No. of bytes    Type                Description
 
 The *zlibData*, when uncompressed, represents a rectangle according to
 the `Raw Encoding`_.
+
+Tight Encoding
+--------------
+
+Tight encoding provides efficient compression for pixel data.
+
+The first byte of each Tight-encoded rectangle is a
+*compression-control* byte:
+
+=============== =================== ===================================
+No. of bytes    Type                Description
+=============== =================== ===================================
+1               ``U8``              *compression-control*
+=============== =================== ===================================
+
+The least significant four bits of *compression-control* byte inform
+the client which zlib compression streams should be reset before
+decoding the rectangle. Each bit is independent and corresponds to a
+separate zlib stream that should be reset:
+
+================== ====================================================
+Bit                Description
+================== ====================================================
+0                  if 1: reset stream 0
+1                  if 1: reset stream 1
+2                  if 1: reset stream 2
+3                  if 1: reset stream 3
+================== ====================================================
+
+One of three possible compression methods are supported in the Tight
+encoding. These are **BasicCompression**, **FillCompression** and
+**JpegCompression**. If the bit 7 (the most significant bit) of
+*compression-control* byte is 0, then the compression type is
+**BasicCompression**. In that case, bits 7-4 (the most significant four
+bits) of *compression-control* should be interpreted as follows:
+
+=============== =================== ===================================
+Bits            Binary value        Description
+=============== =================== ===================================
+5-4             00                  *UseStream0*
+..              01                  *UseStream1*
+..              10                  *UseStream2*
+..              11                  *UseStream3*
+6               0                   ---
+..              1                   *ReadFilterId*
+7               0                   **BasicCompression**
+=============== =================== ===================================
+
+Otherwise, if the bit 7 of *compression-control* is set to 1, then the
+compression method is either **FillCompression** or
+**JpegCompression**, depending on other bits of the same byte:
+
+=============== =================== ===================================
+Bits            Binary value        Description
+=============== =================== ===================================
+7-4             1000                **FillCompression**
+..              1001                **JpegCompression**
+..              any other           invalid
+=============== =================== ===================================
+
+Note: **JpegCompression** may only be used when *bits-per-pixel* is
+either 16 or 32.
+
+The data following the *compression-control* byte depends on the
+compression method.
+
+**FillCompression**
+    If the compression type is "fill", then the only pixel value
+    follows, in client pixel format (see [NOTE1]_). This value applies
+    to all pixels of the rectangle.
+
+**JpegCompression**
+    If the compression type is "jpeg", the following data stream looks
+    like this:
+
+    =============== =================== ===============================
+    No. of bytes    Type                Description
+    =============== =================== ===============================
+    1-3                                 *length* in compact
+                                        representation
+    *length*        ``U8`` array        *jpegData*
+    =============== =================== ===============================
+
+    *length* is compactly represented in one, two or three bytes,
+    according to the following scheme:
+
+    =========================== =======================================
+    Value                       Description
+    =========================== =======================================
+    0xxxxxxx                    for values 0..127
+    1xxxxxxx 0yyyyyyy           for values 128..16383
+    1xxxxxxx 1yyyyyyy zzzzzzzz  for values 16384..4194303
+    =========================== =======================================
+
+    Here each character denotes one bit, xxxxxxx are the least
+    significant 7 bits of the value (bits 0-6), yyyyyyy are bits 7-13,
+    and zzzzzzzz are the most significant 8 bits (bits 14-21). For
+    example, decimal value 10000 should be represented as two bytes:
+    binary 10010000 01001110, or hexadecimal 90 4E.
+
+**BasicCompression**
+    If the compression type is "basic" and bit 6 of the compression
+    control byte was set to 1, then the next (second) byte specifies
+    *filter-id* which tells the decoder what filter type was used by
+    the encoder to pre-process pixel data before the compression. The
+    *filter-id* byte can be one of the following:
+
+    =============== ========= ======== ================================
+    No. of bytes    Type      [Value]  Description
+    =============== ========= ======== ================================
+    1               ``U8``             *filter-id*
+    ..                        0        **no filter** ("copy" filter)
+    ..                        1        **palette filter**
+    ..                        2        **gradient filter**
+    =============== ========= ======== ================================
+
+    If bit 6 of the compression control byte is set to 0 (no
+    *filter-id* byte), or if the *filter-id* is 0, then raw pixel
+    values in the client format (see [NOTE1]_) will be compressed. See
+    below details on the compression.
+
+    The **gradient filter** pre-processes pixel data with a simple
+    algorithm which converts each color component to a difference
+    between a "predicted" intensity and the actual intensity. Such a
+    technique does not affect uncompressed data size, but helps to
+    compress photo-like images better. Pseudo-code for converting
+    intensities to differences is the following:
+
+    ::
+
+        P[i,j] := V[i-1,j] + V[i,j-1] - V[i-1,j-1];
+        if (P[i,j] < 0) then P[i,j] := 0;
+        if (P[i,j] > MAX) then P[i,j] := MAX;
+        D[i,j] := V[i,j] - P[i,j];
+
+    Here V[i,j] is the intensity of a color component for a pixel at
+    coordinates (i,j). MAX is the maximum value of intensity for a
+    color component.
+
+    The **palette filter** converts true-color pixel data to indexed
+    colors and a palette which can consist of 2..256 colors. If the
+    number of colors is 2, then each pixel is encoded in 1 bit,
+    otherwise 8 bits is used to encode one pixel. 1-bit encoding is
+    performed such way that the most significant bits correspond to the
+    leftmost pixels, and each raw of pixels is aligned to the byte
+    boundary. When "palette" filter is used, the palette is sent before
+    the pixel data. The palette begins with an unsigned byte which
+    value is the number of colors in the palette minus 1 (i.e. 1 means
+    2 colors, 255 means 256 colors in the palette). Then follows the
+    palette itself which consist of pixel values in client pixel format
+    (see [NOTE1]_).
+
+    The pixel data is compressed using the zlib library. But if the
+    data size after applying the filter but before the compression is
+    less then 12, then the data is sent as is, uncompressed. Four
+    separate zlib streams (0..3) can be used and the decoder should
+    read the actual stream id from the compression control byte (see
+    [NOTE2]_).
+
+    If the compression is not used, then the pixel data is sent as is,
+    otherwise the data stream looks like this:
+
+    =============== =================== ===============================
+    No. of bytes    Type                Description
+    =============== =================== ===============================
+    1-3                                 *length* in compact
+                                        representation
+    *length*        ``U8`` array        *zlibData*
+    =============== =================== ===============================
+
+    *length* is compactly represented in one, two or three bytes, just
+    like in the **JpegCompression** method (see above).
+
+..  [NOTE1] If the color depth is 24, and all three color components
+    are 8-bit wide, then one pixel in Tight encoding is always
+    represented by three bytes, where the first byte is red component,
+    the second byte is green component, and the third byte is blue
+    component of the pixel color value. This applies to colors in
+    palettes as well.
+
+..  [NOTE2] The decoder must reset compression streams' states before
+    decoding the rectangle, if some of bits 0,1,2,3 in the compression
+    control byte are set to 1. Note that the decoder must reset zlib
+    streams even if the compression type is "fill" or "jpeg".
+
+..  [NOTE3] The "gradient" filter and "jpeg" compression may be used
+    only when bits-per-pixel value is either 16 or 32, not 8.
+
+..  [NOTE4] The width of any Tight-encoded rectangle cannot exceed
+    2048 pixels. If a rectangle is wider, it must be split into several
+    rectangles and each one should be encoded separately.
 
 zlibhex Encoding
 ----------------
