@@ -747,7 +747,8 @@ Code    Vendor      Signature       Description
 6       "``TRDV``"  "``ZLIB____``"  `ZLib Encoding`_
 7       "``TGHT``"  "``TIGHT___``"  `Tight Encoding`_
 8       "``TRDV``"  "``ZLIBHEX_``"  `ZLibHex Encoding`_
--32     "``TGHT``"  "``JPEGQLVL``"  JPEG Quality Level
+-32     "``TGHT``"  "``JPEGQLVL``"  `JPEG Quality Level
+                                    Pseudo-encoding`_
 -223    "``TGHT``"  "``NEWFBSIZ``"  `DesktopSize Pseudo-encoding`_ (New
                                     FB Size)
 -224    "``TGHT``"  "``LASTRECT``"  `LastRect Pseudo-encoding`_
@@ -1664,6 +1665,7 @@ Number       Name
 7            `Tight Encoding`_
 8            `zlibhex Encoding`_
 16           `ZRLE Encoding`_
+-23 to -32   `JPEG Quality Level Pseudo-encoding`_
 -223         `DesktopSize Pseudo-encoding`_
 -224         `LastRect Pseudo-encoding`_
 -239         `Cursor Pseudo-encoding`_
@@ -1680,7 +1682,8 @@ Number                      Name
 =========================== ===========================================
 15                          TRLE
 17                          Hitachi ZYWRLE
--1 to -222                  Tight options
+-1 to -22                   Tight options
+-33 to -222                 Tight options
 -225 to -238                Tight options
 -240 to -246                Tight options
 -257 to -272                Anthony Liguori
@@ -2339,6 +2342,21 @@ are:
 
 Pseudo-encodings
 ++++++++++++++++
+
+JPEG Quality Level Pseudo-encoding
+----------------------------------
+
+Specifies the desired quality from the JPEG encoder. Encoding number
+-23 implies high JPEG quality and -32 implies low JPEG quality. Low
+quality can be useful in low bandwidth situations. If the JPEG quality
+level is not specified, **JpegCompression** is not used in the `Tight
+Encoding`_.
+
+The quality level concerns lossy compression and hence the setting is a
+tradeoff between image quality and bandwidth. The specification defines
+neither what bandwidth is required at a certain quality level nor what
+image quality you can expect. The quality level is also just a hint to
+the server.
 
 Cursor Pseudo-encoding
 -----------------------
