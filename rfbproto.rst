@@ -1649,35 +1649,35 @@ Encodings
 
 The encodings defined in this document are:
 
-=========== ===========================================================
-Number      Name
-=========== ===========================================================
-0           `Raw Encoding`_
-1           `CopyRect Encoding`_
-2           `RRE Encoding`_
-4           `CoRRE Encoding`_
-5           `Hextile Encoding`_
-6           `zlib Encoding`_
-8           `zlibhex Encoding`_
-16          `ZRLE Encoding`_
--239        `Cursor Pseudo-encoding`_
--223        `DesktopSize Pseudo-encoding`_
--305        `gii Pseudo-encoding`_
--308        `ExtendedDesktopSize Pseudo-encoding`_
--309        `xvp Pseudo-encoding`_
-=========== ===========================================================
+============ ==========================================================
+Number       Name
+============ ==========================================================
+0            `Raw Encoding`_
+1            `CopyRect Encoding`_
+2            `RRE Encoding`_
+4            `CoRRE Encoding`_
+5            `Hextile Encoding`_
+6            `zlib Encoding`_
+8            `zlibhex Encoding`_
+16           `ZRLE Encoding`_
+-223         `DesktopSize Pseudo-encoding`_
+-239         `Cursor Pseudo-encoding`_
+-305         `gii Pseudo-encoding`_
+-308         `ExtendedDesktopSize Pseudo-encoding`_
+-309         `xvp Pseudo-encoding`_
+============ ==========================================================
 
 Other registered encodings are:
 
 =========================== ===========================================
 Number                      Name
 =========================== ===========================================
-7                           tight
+7                           Tight
 15                          TRLE
 17                          Hitachi ZYWRLE
--1 to -222
--224 to -238
--240 to -256                tight options
+-1 to -222                  Tight options
+-224 to -238                Tight options
+-240 to -256                Tight options
 -257 to -272                Anthony Liguori
 -273 to -304                VMWare
 -306                        popa
