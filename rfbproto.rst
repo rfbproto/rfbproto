@@ -755,7 +755,8 @@ Code    Vendor      Signature       Description
 -239    "``TGHT``"  "``RCHCURSR``"  `Cursor Pseudo-encoding`_ (Rich
                                     Cursor)
 -240    "``TGHT``"  "``X11CURSR``"  X Cursor
--256    "``TGHT``"  "``COMPRLVL``"  Compression Level
+-256    "``TGHT``"  "``COMPRLVL``"  `Compression Level
+                                    Pseudo-encoding`_
 -305    "``GGI_``"  "``GII_____``"  `gii Pseudo-encoding`_
 ======= =========== =============== ===================================
 
@@ -1662,6 +1663,7 @@ Number       Name
 16           `ZRLE Encoding`_
 -223         `DesktopSize Pseudo-encoding`_
 -239         `Cursor Pseudo-encoding`_
+-247 to -256 `Compression Level Pseudo-encoding`_
 -305         `gii Pseudo-encoding`_
 -308         `ExtendedDesktopSize Pseudo-encoding`_
 -309         `xvp Pseudo-encoding`_
@@ -1677,7 +1679,7 @@ Number                      Name
 17                          Hitachi ZYWRLE
 -1 to -222                  Tight options
 -224 to -238                Tight options
--240 to -256                Tight options
+-240 to -246                Tight options
 -257 to -272                Anthony Liguori
 -273 to -304                VMWare
 -306                        popa
@@ -2239,6 +2241,22 @@ partially or completely undefined. Clients should try to handle this
 gracefully, e.g. by showing a black framebuffer or delay the screen
 update until a proper update of the framebuffer contents has been
 received.
+
+Compression Level Pseudo-encoding
+---------------------------------
+
+Specifies the desired compression level. Encoding number -247 implies
+high compression level, -255 implies low compression level. Low
+compression level can be useful to get low latency in medium to high
+bandwidth situations and high compression level can be useful in low
+bandwidth situations.
+
+The compression level concerns lossless compression, and hence the
+setting is a tradoff between CPU time and bandwidth. It is therefore
+probably difficult to define exact cut-off points for which compression
+levels should be used for any given bandwidth. The compression level is
+just a hint for the server, and there is no specification for what a
+specific compression level means.
 
 gii Pseudo-encoding
 -------------------
