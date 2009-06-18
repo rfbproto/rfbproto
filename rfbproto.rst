@@ -1671,6 +1671,7 @@ Number       Name
 -239         `Cursor Pseudo-encoding`_
 -247 to -256 `Compression Level Pseudo-encoding`_
 -305         `gii Pseudo-encoding`_
+-307         `DesktopName Pseudo-encoding`_
 -308         `ExtendedDesktopSize Pseudo-encoding`_
 -309         `xvp Pseudo-encoding`_
 ============ ==========================================================
@@ -1689,7 +1690,6 @@ Number                      Name
 -257 to -272                Anthony Liguori
 -273 to -304                VMWare
 -306                        popa
--307                        Peter Astrand DesktopName
 0x574d5600 to 0x574d56ff    VMWare
 =========================== ===========================================
 
@@ -2509,6 +2509,25 @@ extension is used to provide a more powerful input protocol for cases
 where the standard input model is insufficient. It supports relative
 mouse movements, mouses with more than 8 buttons and mouses with more
 than three axes. It even supports joysticks and gamepads.
+
+DesktopName Pseudo-encoding
+---------------------------
+
+A client which requests the DesktopName pseudo-encoding is declaring
+that it is capable of coping with a change of the desktop name. The
+server changes the desktop name by sending a pseudo-rectangle with the
+DesktopName pseudo-encoding in an update. The pseudo-rectangle's
+x-position, y-position, width, and height must be zero. After the
+rectangle header, a string with the new name follows.
+
+=============== =================== ===================================
+No. of bytes    Type                Description
+=============== =================== ===================================
+4               ``U32``             *name-length*
+*name-length*   ``U8`` array        *name-string*
+=============== =================== ===================================
+
+The text encoding used for *name-string* is UTF-8.
 
 ExtendedDesktopSize Pseudo-encoding
 -----------------------------------
