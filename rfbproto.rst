@@ -201,6 +201,34 @@ that you contact RealVNC Ltd to make sure that your encoding types and
 security types do not clash. Please see the RealVNC website at
 http://www.realvnc.com for details of how to contact them.
 
+String Encodings
+================
+
+The encoding used for strings in the protocol has historically often
+been unspecified, or has changed between versions of the protocol. As a
+result, there are a lot of implementations which use different,
+incompatible encodings. Commonly those encodings have been ISO 8859-1
+(also known as Latin-1) or Windows code pages.
+
+It is strongly recommended that new implementations use the UTF-8
+encoding for these strings. This allows full unicode support, yet
+retains good compatibility with older RFB implementations.
+
+New protocol additions that do not have a legacy problem should mandate
+the UTF-8 encoding to provide full character support and to avoid any
+issues with ambiguity.
+
+All clients and servers should be prepared to receive invalid UTF-8
+sequences at all times. These can occur as a result of historical
+ambiguity or because of bugs. Neither case should result in lost
+protocol synchronization.
+
+Handling an invalid UTF-8 sequence is largely dependent on the role
+that string plays. Modifying the string should only be done when the
+string is only used in the user interface. It should be obvious in that
+case that the string has been modified, e.g. by appending a notice to
+the string.
+
 Protocol Messages
 =================
 
@@ -614,7 +642,11 @@ No. of bytes    Type                Description
 *name-length*   ``U8`` array        *name-string*
 =============== =================== ===================================
 
-where ``PIXEL_FORMAT`` is
+The text encoding used for *name-string* is historically undefined but
+it is strongly recommended to use UTF-8 (see `String Encodings`_ for
+more details).
+
+``PIXEL_FORMAT`` is defined as:
 
 =============== =================== ===================================
 No. of bytes    Type                Description
