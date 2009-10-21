@@ -637,7 +637,7 @@ No. of bytes    Type                Description
 =============== =================== ===================================
 2               ``U16``             *framebuffer-width*
 2               ``U16``             *framebuffer-height*
-16               ``PIXEL_FORMAT``   *server-pixel-format*
+16              ``PIXEL_FORMAT``    *server-pixel-format*
 4               ``U32``             *name-length*
 *name-length*   ``U8`` array        *name-string*
 =============== =================== ===================================
