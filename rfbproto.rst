@@ -1866,13 +1866,19 @@ rectangle is not an exact multiple of 16 then the height of each tile
 in the final row will also be smaller.
 
 Each tile is either encoded as raw pixel data, or as a variation on
-RRE. Each tile has a background pixel value, as before. However, the
-background pixel value does not need to be explicitly specified for a
-given tile if it is the same as the background of the previous tile. If
-all of the subrectangles of a tile have the same pixel value, this can
-be specified once as a foreground pixel value for the whole tile. As
-with the background, the foreground pixel value can be left
-unspecified, meaning it is carried over from the previous tile.
+RRE. Each tile has a background pixel value, as before. The background
+pixel value does not need to be explicitly specified for a given tile
+if it is the same as the background of the previous tile. However the
+background pixel value may not be carried over if the previous tile was
+raw. If all of the subrectangles of a tile have the same pixel value,
+this can be specified once as a foreground pixel value for the whole
+tile. As with the background, the foreground pixel value can be left
+unspecified, meaning it is carried over from the previous tile. The
+foreground pixel value may not be carried over if the previous tile was
+raw or had the SubrectsColored bit set. It may, however, be carried
+over from a previous tile with the AnySubrects bit clear, as long as
+that tile itself carried over a valid foreground from its previous
+tile.
 
 So the data consists of each tile encoded in order. Each tile begins
 with a subencoding type byte, which is a mask made up of a number of
