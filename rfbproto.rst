@@ -386,6 +386,7 @@ Number      Name
 18          TLS
 19          VeNCrypt
 20          SASL
+21          MD5 hash authentication
 =========== ===========================================================
 
 Once the *security-type* has been decided, data specific to that
@@ -1722,6 +1723,8 @@ Number                      Name
 -257 to -272                Anthony Liguori
 -273 to -304                VMWare
 -306                        popa
+-412 to -512                TurboVNC fine-grained quality level
+-763 to -768                TurboVNC subsampling level
 0x574d5600 to 0x574d56ff    VMWare
 =========================== ===========================================
 
