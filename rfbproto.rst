@@ -818,7 +818,7 @@ Optional message types are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
-255         Anthony Liguori
+255         `QEMU Client Message`_
 254, 127    VMWare
 253         `gii Client Message`_
 252         tight
@@ -1098,6 +1098,10 @@ No. of bytes    Type                 [Value]    Description
 2               ``U16``                         *x-position*
 2               ``U16``                         *y-position*
 =============== ==================== ========== =======================
+
+The `QEMU Pointer Motion Change Psuedo-encoding`_ allows for the
+negotiation of an alternative interpretation for the *x-position*
+and *y-position* fields, as relative deltas.
 
 ClientCutText
 -------------
@@ -1469,6 +1473,151 @@ The possible values for *xvp-message-code* are: 2 - XVP_SHUTDOWN,
 established that the server supports this extension, by requesting the
 `xvp Pseudo-encoding`_.
 
+QEMU Client Message
+-------------------
+
+This message may only be sent if the client has previously received
+a *FrameBufferUpdate* that confirms support for the intended
+*submessage-type*. Every ``QEMU Client Message`` begins with
+a standard header
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               255        *message-type*
+1               ``U8``                          *submessage-type*
+=============== ==================== ========== =======================
+
+This header is then followed by arbitrary data whose format is
+determined by the *submessage-type*. Possible values for
+*submessage-type* and their associated psuedo encodings are
+
+================ ================ ====================
+Submessage Type  Psuedo Encoding  Description
+================ ================ ====================
+0                -258             Extended key events
+1                -259             Audio
+================ ================ ====================
+
+QEMU Extended Key Event Message
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This submessage allows the client to send an extended key event
+containing a keycode, in addition to a keysym. The advantage of
+providing the keycode is that it enables the server to interpret
+the key event independantly of the clients' locale specific
+keymap. This can be important for virtual desktops whose key
+input device requires scancodes, for example, virtual machines
+emulating a PS/2 keycode. Prior to this extension, RFB servers
+for such virtualization software would have to be configured
+with a keymap matching the client. With this extension it is
+sufficient for the guest operating system to be configured with
+the matching keymap. The VNC server is keymap independant.
+
+The full message is:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               255        *message-type*
+1               ``U8``               0          *submessage-type*
+2               ``U16``                         *down-flag*
+4               ``U32``                         *keysym*
+4               ``U32``                         *keycode*
+=============== ==================== ========== =======================
+
+The *keysym* and *down-flag* fields also take the same values as
+described for the `KeyEvent`_ message. Auto repeating behaviour
+of keys is also as described for the `KeyEvent`_ message.
+
+The *keycode* is the XT keycode that produced the *keysym*. An
+XT keycode is an XT make scancode sequence encoded to fit in
+a single ``U32`` quantity. Single byte XT scancodes with a byte
+value less than 0x7f are encoded as is. 2-byte XT scancodes
+whose first byte is 0xe0 and second byte is less than 0x7f are
+encoded with the high bit of the first byte set. Some example
+mappings are
+
+============= ================== ============ ==========
+XT scancode   X11 keysym         RFB keycode  down-flag
+============= ================== ============ ==========
+0x1e          XK_A (0x41)        0x1e         1
+0x9e          XK_A (0x41)        0x1e         0
+0xe0 0x4d     XK_Right (0xff53)  0xcd         1
+0xe0 0xcd     XK_Right (0xff53)  0xcd         0
+============= ================== ============ ==========
+
+
+QEMU Audio Client Message
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This submessage allows the client to control how the audio data
+stream is received. There are three operations that can be invoked
+with this submessage, the payload varies according to which
+operation is requested.
+
+The first operation enables audio capture from the server:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               255        *message-type*
+1               ``U8``               1          *submessage-type*
+2               ``U16``              0          *operation*
+=============== ==================== ========== =======================
+
+After invoking this operation, the client will receive a
+`QEMU Audio Server Message`_ when an audio stream begins.
+
+The second operation is the inverse, to disable audio capture
+on the server:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               255        *message-type*
+1               ``U8``               1          *submessage-type*
+2               ``U16``              1          *operation*
+=============== ==================== ========== =======================
+
+Due to inherant race conditions in the protocol, after invoking this
+operation, the client may still receive further
+`QEMU Audio Server Message`_ messages for a short time.
+
+The third and final operation is to set the audio sample format.
+This should be set before audio capture is enabled on the server,
+otherwise the client will not be able to reliably interpret the
+receiving audio buffers:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               255        *message-type*
+1               ``U8``               1          *submessage-type*
+2               ``U16``              2          *operation*
+1               ``U8``                          *sample-format*
+1               ``U8``                          *nchannels*
+4               ``U32``                         *frequency*
+=============== ==================== ========== =======================
+
+The *sample-format* field must take one of the following values,
+and this describes the number of bytes that each sample will
+consume:
+
+====== ============= =======
+Value  No. of bytes  Type
+====== ============= =======
+0      1             ``U8``
+1      1             ``S8``
+2      2             ``U16``
+3      2             ``S16``
+4      4             ``U32``
+5      4             ``S32``
+====== ============= =======
+
+The *nchannels* field must be either ``1`` (mono) or ``2`` (stereo).
+
+
 Server to Client Messages
 +++++++++++++++++++++++++
 
@@ -1488,7 +1637,7 @@ Optional message types are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
-255         Anthony Liguori
+255         QEMU
 254, 127    VMWare
 253         `gii Server Message`_
 252         tight
@@ -1681,6 +1830,80 @@ an operation which it is unable to perform, informs the client of this
 by sending a message with an XVP_FAIL *xvp-message-code*, and the same
 *xvp-extension-version* as included in the client's operation request.
 
+QEMU Server Message
+-------------------
+
+This message may only be sent if the client has previously received
+a *FrameBufferUpdate* that confirms support for the intended
+*submessage-type*. Every ``QEMU Server Message`` begins with
+a standard header
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               255        *message-type*
+1               ``U8``                          *submessage-type*
+=============== ==================== ========== =======================
+
+This header is then followed by arbitrary data whose format is
+determined by the *submessage-type*. Possible values for
+*submessage-type* and their associated psuedo encodings are
+
+================ ================ ====================
+Submessage Type  Psuedo Encoding  Description
+================ ================ ====================
+1                -259             Audio
+================ ================ ====================
+
+Submessage type 0 is unused, since the
+`QEMU Extended Key Event Psuedo-encoding`_ does not require any
+server messages.
+
+QEMU Audio Server Message
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This submessage allows the server to send an audio data stream
+to the client. There are three operations that can be invoked
+with this submessage, the payload varies according to which
+operation is requested.
+
+The first operation informs the client that an audio stream is
+about to start
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               255        *message-type*
+1               ``U8``               1          *submessage-type*
+2               ``U16``              1          *operation*
+=============== ==================== ========== =======================
+
+The second operation informs the client that an audio stream has
+now finished:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               255        *message-type*
+1               ``U8``               1          *submessage-type*
+2               ``U16``              0          *operation*
+=============== ==================== ========== =======================
+
+The third and final operation is to provide audio data.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               255        *message-type*
+1               ``U8``               1          *submessage-type*
+2               ``U16``              2          *operation*
+4               ``U32``                         *data-length*
+*data-length*   ``U8`` array                    *data*
+=============== ==================== ========== =======================
+
+The *data-length* will be a multiple of (*sample-format* * *nchannels*)
+as requested by the client in an earlier `QEMU Audio Client Message`_.
+
 Encodings
 +++++++++
 
@@ -1703,6 +1926,9 @@ Number       Name
 -224         `LastRect Pseudo-encoding`_
 -239         `Cursor Pseudo-encoding`_
 -247 to -256 `Compression Level Pseudo-encoding`_
+-257         `QEMU Pointer Motion Change Psuedo-encoding`_
+-258         `QEMU Extended Key Event Psuedo-encoding`_
+-259         `QEMU Audio Psuedo-encoding`_
 -305         `gii Pseudo-encoding`_
 -307         `DesktopName Pseudo-encoding`_
 -308         `ExtendedDesktopSize Pseudo-encoding`_
@@ -1720,7 +1946,7 @@ Number                      Name
 -33 to -222                 Tight options
 -225 to -238                Tight options
 -240 to -246                Tight options
--257 to -272                Anthony Liguori
+-260 to -272                QEMU
 -273 to -304                VMWare
 -306                        popa
 -412 to -512                TurboVNC fine-grained quality level
@@ -2534,6 +2760,67 @@ probably difficult to define exact cut-off points for which compression
 levels should be used for any given bandwidth. The compression level is
 just a hint for the server, and there is no specification for what a
 specific compression level means.
+
+QEMU Pointer Motion Change Psuedo-encoding
+------------------------------------------
+
+A client that supports this encoding declares that is able to send
+pointer motion events either as absolute coordinates, or relative
+deltas. The server can switch between different pointer motion modes
+by sending a `FrameBufferUpdate`_ message. If the *x-position* in
+the update is 1, the server is requesting absolute coordinates, which
+is the RFB protocol default when this encoding is not supported. If
+the *x-position* in the update is 0, the server is requesting relative
+deltas.
+
+When relative delta mode is active, the semantics of the
+`PointerEvent`_ message are changed. The *x-position* and *y-position*
+fields are to be treated as ``S16`` quantities, denoting the delta
+from the last position. A client can compute the signed deltas with
+the logic::
+
+  uint16 dx = x + 0x7FFF - last_x
+  uint16 dy = y + 0x7FFF - last_y
+
+If the client needs to send an updated *button-mask* without
+any associated motion, it should use the value 0x7FFF in the
+*x-position* and *y-position* fields of the `PointerEvent`_
+
+Servers are advised to implement this psuedo-encoding if the virtual
+desktop is associated a input device that expects relative coordinates,
+for example, a virtual machine with a PS/2 mouse. Prior to this
+extension, a server with such a input device would have to perform the
+absolute to relative delta conversion itself. This can result in the
+client pointer hitting an "invisible wall".
+
+Clients are advised that when generating events in relative pointer
+mode, they should grab and hide the local pointer. When the local
+pointer hits any edge of the client window, it should be warped
+back by 100 pixels. This ensures that continued movement of the
+user's input device will continue to generate relative deltas and
+thus avoid the "invisible wall" problem.
+
+QEMU Extended Key Event Psuedo-encoding
+---------------------------------------
+
+A client that supports this encoding is indicating that it is able
+to provide raw keycodes as an alternative to keysyms. If a server
+wishes to receive raw keycodes it will send a `FrameBufferUpdate`_
+with the matching psuedo-encoding and the *num-rectanges* field
+set to 1, however, no rectanges will actually be sent. After receiving
+this notification, clients may optionally use the
+`QEMU Extended Key Event Message`_ to send key events, in preference
+to the traditional `KeyEvent`_ message.
+
+QEMU Audio Psuedo-encoding
+--------------------------
+
+A client that supports this encoding is indicating that it is able
+to receive an audio data stream. If a server wishes to send audio
+data it will send a `FrameBufferUpdate`_ with the matching
+psuedo-encoding and the *num-rectangles* field set to 1, however, no
+rectangles will actually be sent. After receiving this notification,
+clients may optionally use the `QEMU Audio Client Message`_.
 
 gii Pseudo-encoding
 -------------------
