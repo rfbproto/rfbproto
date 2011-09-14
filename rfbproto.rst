@@ -792,6 +792,10 @@ Code    Vendor      Signature       Description
 -256    "``TGHT``"  "``COMPRLVL``"  `Compression Level
                                     Pseudo-encoding`_
 -305    "``GGI_``"  "``GII_____``"  `gii Pseudo-encoding`_
+-512    "``TRBO``"  "``FINEQLVL``"  `TurboVNC Fine-Grained Quality Level
+                                    Pseudo-encoding`_
+-768    "``TRBO``"  "``SSAMPLVL``"  `TurboVNC Subsampling Level
+                                    Pseudo-encoding`_
 ======= =========== =============== ===================================
 
 Note that the server need not (but it may) list the "``RAW_____``"
@@ -1933,6 +1937,8 @@ Number       Name
 -307         `DesktopName Pseudo-encoding`_
 -308         `ExtendedDesktopSize Pseudo-encoding`_
 -309         `xvp Pseudo-encoding`_
+-412 to -512 `TurboVNC Fine-Grained Quality Level Pseudo-encoding`_
+-763 to -768 `TurboVNC Subsampling Level Pseudo-encoding`_
 ============ ==========================================================
 
 Other registered encodings are:
@@ -2635,6 +2641,59 @@ tradeoff between image quality and bandwidth. The specification defines
 neither what bandwidth is required at a certain quality level nor what
 image quality you can expect. The quality level is also just a hint to
 the server.
+
+TurboVNC Fine-Grained Quality Level Pseudo-encoding
+---------------------------------------------------
+
+The TurboVNC Fine-Grained Quality Level pseudo-encoding allows the image
+quality to be specified on a 0 to 100 scale, with -512 corresponding to image
+quality 0 and -412 corresponding to image quality 100.  This pseudo-encoding
+was originally intended for use with JPEG-encoded subrectangles, but it could
+be used with other types of image encoding as well.
+
+TurboVNC Subsampling Level Pseudo-Encoding
+------------------------------------------
+
+The TurboVNC Subsampling Level pseudo-encoding allows the level of chrominance
+subsampling to be specified.  When a JPEG image is encoded, the RGB pixels are
+first converted to YCbCr, a colorspace in which brightness (luminance) is
+separated from color (chrominance.)  Since the human eye is more sensitive to
+spatial changes in brightness than to spatial changes in color, the chrominance
+components (Cb, Cr) can be subsampled to save bandwidth without losing much
+image quality (on smooth images, such as photographs, chrominance subsampling
+is often not distinguishable by the human eye.)  Subsampling can be implemented
+either by averaging together groups of chrominance components or by simply
+picking one component from the group and discarding the rest.
+
+The values for this pseudo-encoding are defined as follows:
+
+-768 = 1X chrominance subsampling (no chrominance subsampling).
+       Chrominance components are sent for every pixel in the source image.
+
+-767 = 4X chrominance subsampling.  Chrominance components are sent for every
+       fourth pixel in the source image.  This would typically be implemented
+       using 4:2:0 subsampling (2X subsampling in both X and Y directions), but
+       it could also be implemented using 4:1:1 subsampling (4X subsampling in
+       the X direction.)
+
+-766 = 2X chrominance subsampling.  Chrominance components are sent for every
+       other pixel in the source image.  This would typically be implemented
+       using 4:2:2 subsampling (2X subsampling in the X direction.)
+
+-765 = Grayscale.  All chrominance components in the source image are
+       discarded.
+
+-764 = 8X chrominance subsampling.  Chrominance components are sent for every
+       8th pixel in the source image.  This would typically be implemented
+       using 4:1:0 subsampling (4X subsampling in the X direction and 2X
+       subsampling in the Y direction.)
+
+-763 = 16X chrominance subsampling.  Chrominance components are sent for every
+       16th pixel in the source image.  This would typically be implemented
+       using 4X subsampling in both X and Y directions.
+
+This pseudo-encoding was originally intended for use with JPEG-encoded
+subrectangles, but it could be used with other types of image encoding as well.
 
 Cursor Pseudo-encoding
 -----------------------
