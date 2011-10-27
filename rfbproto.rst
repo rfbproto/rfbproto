@@ -1955,8 +1955,6 @@ Number                      Name
 -260 to -272                QEMU
 -273 to -304                VMWare
 -306                        popa
--412 to -512                TurboVNC fine-grained quality level
--763 to -768                TurboVNC subsampling level
 0x574d5600 to 0x574d56ff    VMWare
 =========================== ===========================================
 
