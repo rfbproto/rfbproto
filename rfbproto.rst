@@ -792,9 +792,9 @@ Code    Vendor      Signature       Description
 -256    "``TGHT``"  "``COMPRLVL``"  `Compression Level
                                     Pseudo-encoding`_
 -305    "``GGI_``"  "``GII_____``"  `gii Pseudo-encoding`_
--512    "``TRBO``"  "``FINEQLVL``"  `TurboVNC Fine-Grained Quality Level
+-512    "``TRBO``"  "``FINEQLVL``"  `JPEG Fine-Grained Quality Level
                                     Pseudo-encoding`_
--768    "``TRBO``"  "``SSAMPLVL``"  `TurboVNC Subsampling Level
+-768    "``TRBO``"  "``SSAMPLVL``"  `JPEG Subsampling Level
                                     Pseudo-encoding`_
 ======= =========== =============== ===================================
 
@@ -1937,8 +1937,8 @@ Number       Name
 -307         `DesktopName Pseudo-encoding`_
 -308         `ExtendedDesktopSize Pseudo-encoding`_
 -309         `xvp Pseudo-encoding`_
--412 to -512 `TurboVNC Fine-Grained Quality Level Pseudo-encoding`_
--763 to -768 `TurboVNC Subsampling Level Pseudo-encoding`_
+-412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
+-763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
 ============ ==========================================================
 
 Other registered encodings are:
@@ -2642,19 +2642,19 @@ neither what bandwidth is required at a certain quality level nor what
 image quality you can expect. The quality level is also just a hint to
 the server.
 
-TurboVNC Fine-Grained Quality Level Pseudo-encoding
----------------------------------------------------
+JPEG Fine-Grained Quality Level Pseudo-encoding
+-----------------------------------------------
 
-The TurboVNC Fine-Grained Quality Level pseudo-encoding allows the image
+The JPEG Fine-Grained Quality Level pseudo-encoding allows the image
 quality to be specified on a 0 to 100 scale, with -512 corresponding to image
 quality 0 and -412 corresponding to image quality 100.  This pseudo-encoding
 was originally intended for use with JPEG-encoded subrectangles, but it could
 be used with other types of image encoding as well.
 
-TurboVNC Subsampling Level Pseudo-Encoding
-------------------------------------------
+JPEG Subsampling Level Pseudo-Encoding
+--------------------------------------
 
-The TurboVNC Subsampling Level pseudo-encoding allows the level of chrominance
+The JPEG Subsampling Level pseudo-encoding allows the level of chrominance
 subsampling to be specified.  When a JPEG image is encoded, the RGB pixels are
 first converted to YCbCr, a colorspace in which brightness (luminance) is
 separated from color (chrominance.)  Since the human eye is more sensitive to
