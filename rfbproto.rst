@@ -1090,9 +1090,9 @@ respectively, 0 meaning up, 1 meaning down (pressed).
 
 On a conventional mouse, buttons 1, 2 and 3 correspond to the left,
 middle and right buttons on the mouse. On a wheel mouse, each step of
-the wheel upwards is represented by a press and release of button 4,
-and each step downwards is represented by a press and release of
-button 5.
+the wheel is represented by a press and release of a certain button.
+Button 4 means up, button 5 means down, button 6 means left and
+button 7 means right.
 
 =============== ==================== ========== =======================
 No. of bytes    Type                 [Value]    Description
