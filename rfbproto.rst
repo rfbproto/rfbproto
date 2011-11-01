@@ -788,7 +788,7 @@ Code    Vendor      Signature       Description
 -232    "``TGHT``"  "``POINTPOS``"  Pointer Position
 -239    "``TGHT``"  "``RCHCURSR``"  `Cursor Pseudo-encoding`_ (Rich
                                     Cursor)
--240    "``TGHT``"  "``X11CURSR``"  X Cursor
+-240    "``TGHT``"  "``X11CURSR``"  `X Cursor Pseudo-encoding`_
 -256    "``TGHT``"  "``COMPRLVL``"  `Compression Level
                                     Pseudo-encoding`_
 -305    "``GGI_``"  "``GII_____``"  `gii Pseudo-encoding`_
@@ -1929,6 +1929,7 @@ Number       Name
 -223         `DesktopSize Pseudo-encoding`_
 -224         `LastRect Pseudo-encoding`_
 -239         `Cursor Pseudo-encoding`_
+-240         `X Cursor Pseudo-encoding`_
 -247 to -256 `Compression Level Pseudo-encoding`_
 -257         `QEMU Pointer Motion Change Psuedo-encoding`_
 -258         `QEMU Extended Key Event Psuedo-encoding`_
@@ -1951,7 +1952,7 @@ Number                      Name
 -1 to -22                   Tight options
 -33 to -222                 Tight options
 -225 to -238                Tight options
--240 to -246                Tight options
+-241 to -246                Tight options
 -260 to -272                QEMU
 -273 to -304                VMWare
 -306                        popa
@@ -2661,6 +2662,41 @@ pixel in the cursor is valid.
 No. of bytes                           Type             Description
 ====================================== ================ ===============
 *width* * *height* * *bytesPerPixel*   ``PIXEL`` array  *cursor-pixels*
+floor((*width* + 7) / 8) * *height*    ``U8`` array     *bitmask*
+====================================== ================ ===============
+
+X Cursor Pseudo-encoding
+------------------------
+
+A client which requests the *X Cursor* pseudo-encoding is declaring
+that it is capable of drawing a mouse cursor locally. This can
+significantly improve perceived performance over slow links. The
+server sets the cursor shape by sending a pseudo-rectangle with the
+*X Cursor* pseudo-encoding as part of an update.
+
+The pseudo-rectangle's *x-position* and *y-position* indicate the
+hotspot of the cursor, and *width* and *height* indicate the width and
+height of the cursor in pixels. 
+
+The data consists of the primary and secondary colours for the cursor,
+followed by one bitmap for the colour and one bitmask for the
+transparency. The bitmap and bitmask both consist of left-to-right,
+top-to-bottom scanlines, where each scanline is padded to a whole
+number of bytes floor((*width* + 7) / 8). Within each byte the most
+significant bit represents the leftmost pixel, with a 1-bit meaning the
+corresponding pixel should use the primary colour, or that the pixel is
+valid.
+
+====================================== ================ ===============
+No. of bytes                           Type             Description
+====================================== ================ ===============
+1                                      ``U8``           *primary-r*
+1                                      ``U8``           *primary-g*
+1                                      ``U8``           *primary-b*
+1                                      ``U8``           *secondary-r*
+1                                      ``U8``           *secondary-g*
+1                                      ``U8``           *secondary-b*
+floor((*width* + 7) / 8) * *height*    ``U8`` array     *bitmap*
 floor((*width* + 7) / 8) * *height*    ``U8`` array     *bitmask*
 ====================================== ================ ===============
 
