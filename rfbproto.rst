@@ -831,6 +831,17 @@ Optional message types are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
+7 [#off]_   FileTransfer
+8 [#off]_   SetScale
+9 [#off]_   SetServerInput
+10 [#off]_  SetSW
+11 [#off]_  TextChat
+12 [#off]_  KeyFrameRequest
+13 [#off]_  KeepAlive
+15 [#off]_  SetScaleFactor
+20 [#off]_  RequestSession
+21 [#off]_  SetSession
+80 [#off]_  NotifyPluginStreaming
 127         VMWare
 128         Car Connectivity
 150 [#off]_ `EnableContinuousUpdates`_
@@ -1697,9 +1708,16 @@ Optional message types are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
+4 [#off]_   ResizeFrameBuffer
+5 [#off]_   KeyFrameUpdate
+7 [#off]_   FileTransfer
+11 [#off]_  TextChat
+13 [#off]_  KeepAlive
+15 [#off]_  ResizeFrameBuffer
 127         VMWare
 128         Car Connectivity
 150 [#off]_ `EndOfContinuousUpdates`_
+173 [#off]_ ServerState
 249         OLIVE Call Control
 250         `xvp Server Message`_
 252         tight
@@ -2024,6 +2042,8 @@ Other registered encodings are:
 =========================== ===========================================
 Number                      Name
 =========================== ===========================================
+9 [#off]_                   Ultra
+10 [#off]_                  Ultra2
 15                          TRLE
 17                          Hitachi ZYWRLE
 1000 to 1002                Apple Inc.
@@ -2032,7 +2052,8 @@ Number                      Name
 1100 to 1104                Apple Inc.
 -1 to -22                   Tight options
 -33 to -222                 Tight options
--225 to -238                Tight options
+-225                        PointerPos
+-226 to -238                Tight options
 -241 to -246                Tight options
 -260 to -272                QEMU
 -273 to -304                VMWare
@@ -2041,6 +2062,22 @@ Number                      Name
 -311                        ClientRedirect
 -523 to -528                Car Connectivity
 0x574d5600 to 0x574d56ff    VMWare
+0xc0a1e5ce [#off]_          ExtendedClipboard
+0xc0a1e5cf [#off]_          PluginStreaming
+0xffff0000 [#off]_          Cache
+0xffff0001 [#off]_          CacheEnable
+0xffff0002 [#off]_          XOR zlib
+0xffff0003 [#off]_          XORMonoRect zlib
+0xffff0004 [#off]_          XORMultiColor zlib
+0xffff0005 [#off]_          SolidColor
+0xffff0006 [#off]_          XOREnable
+0xffff0007 [#off]_          CacheZip
+0xffff0008 [#off]_          SolMonoZip
+0xffff0009 [#off]_          UltraZip
+0xffff8000 [#off]_          ServerState
+0xffff8001 [#off]_          EnableKeepAlive
+0xffff8002 [#off]_          FTProtocolVersion
+0xffff8003 [#off]_          Session
 =========================== ===========================================
 
 The official, up-to-date list is maintained by IANA [#reg]_.
