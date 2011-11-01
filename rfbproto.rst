@@ -380,13 +380,18 @@ Other registered security types are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
+3-4         RealVNC
 5           RA2
 6           RA2ne
+7-15        RealVNC
 17          Ultra
 18          TLS
 19          VeNCrypt
 20          SASL
 21          MD5 hash authentication
+22          xvp
+30-35       Apple Inc.
+128-255     RealVNC
 =========== ===========================================================
 
 Once the *security-type* has been decided, data specific to that
@@ -822,13 +827,16 @@ Optional message types are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
-255         `QEMU Client Message`_
-254, 127    VMWare
-253         `gii Client Message`_
-252         tight
-251         `SetDesktopSize`_
-250         `xvp Client Message`_
+127         VMWare
+128         Car Connectivity
 150 [#off]_ `EnableContinuousUpdates`_
+249         OLIVE Call Control
+250         `xvp Client Message`_
+251         `SetDesktopSize`_
+252         tight
+253         `gii Client Message`_
+254         VMWare
+255         `QEMU Client Message`_
 =========== ===========================================================
 
 .. [#off] **Warning:** Not officially allocated
@@ -1683,12 +1691,15 @@ Optional message types are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
-255         QEMU
-254, 127    VMWare
-253         `gii Server Message`_
-252         tight
-250         `xvp Server Message`_
+127         VMWare
+128         Car Connectivity
 150 [#off]_ `EndOfContinuousUpdates`_
+249         OLIVE Call Control
+250         `xvp Server Message`_
+252         tight
+253         `gii Server Message`_
+254         VMWare
+255         QEMU
 =========== ===========================================================
 
 Note that before sending a message with an optional message type a
@@ -2007,6 +2018,10 @@ Number                      Name
 =========================== ===========================================
 15                          TRLE
 17                          Hitachi ZYWRLE
+1000 to 1002                Apple Inc.
+1011                        Apple Inc.
+1024 to 1099                RealVNC
+1100 to 1104                Apple Inc.
 -1 to -22                   Tight options
 -33 to -222                 Tight options
 -225 to -238                Tight options
@@ -2014,6 +2029,9 @@ Number                      Name
 -260 to -272                QEMU
 -273 to -304                VMWare
 -306                        popa
+-310                        OLIVE Call Control
+-311                        ClientRedirect
+-523 to -528                Car Connectivity
 0x574d5600 to 0x574d56ff    VMWare
 =========================== ===========================================
 
