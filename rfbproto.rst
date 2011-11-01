@@ -394,6 +394,10 @@ Number      Name
 128-255     RealVNC
 =========== ===========================================================
 
+The official, up-to-date list is maintained by IANA [#reg]_.
+
+.. [#reg] http://www.ietf.org/assignments/rfb/rfb.xml
+
 Once the *security-type* has been decided, data specific to that
 *security-type* follows (see `Security Types`_ for details). At the end
 of the security handshaking phase, the protocol normally continues with
@@ -840,6 +844,8 @@ Number      Name
 =========== ===========================================================
 
 .. [#off] **Warning:** Not officially allocated
+
+The official, up-to-date list is maintained by IANA [#reg]_.
 
 Note that before sending a message with an optional message type a
 client must have determined that the server supports the relevant
@@ -1702,6 +1708,8 @@ Number      Name
 255         QEMU
 =========== ===========================================================
 
+The official, up-to-date list is maintained by IANA [#reg]_.
+
 Note that before sending a message with an optional message type a
 server must have determined that the client supports the relevant
 extension by receiving some extension-specific confirmation from the
@@ -2034,6 +2042,8 @@ Number                      Name
 -523 to -528                Car Connectivity
 0x574d5600 to 0x574d56ff    VMWare
 =========================== ===========================================
+
+The official, up-to-date list is maintained by IANA [#reg]_.
 
 Raw Encoding
 ------------
