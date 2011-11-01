@@ -828,7 +828,10 @@ Number      Name
 252         tight
 251         `SetDesktopSize`_
 250         `xvp Client Message`_
+150 [#off]_ `EnableContinuousUpdates`_
 =========== ===========================================================
+
+.. [#off] **Warning:** Not officially allocated
 
 Note that before sending a message with an optional message type a
 client must have determined that the server supports the relevant
@@ -1621,6 +1624,45 @@ Value  No. of bytes  Type
 
 The *nchannels* field must be either ``1`` (mono) or ``2`` (stereo).
 
+EnableContinuousUpdates
+-----------------------
+
+This message informs the server to switch between only sending
+`FramebufferUpdate`_ messages as a result of a 
+`FramebufferUpdateRequest`_ message, or sending ``FramebufferUpdate``
+messages continuously.
+
+Note that there is currently no way to determine if the server supports
+this message except for using the `Tight Security Type`_ authentication.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               150        *message-type*
+1               ``U8``                          *enable-flag*
+2               ``U16``                         *x-position*
+2               ``U16``                         *y-position*
+2               ``U16``                         *width*
+2               ``U16``                         *height*
+=============== ==================== ========== =======================
+
+If *enable-flag* is non-zero, then the server can start sending
+``FramebufferUpdate`` messages as needed for the area specified by
+*x-position*, *y-position*, *width*, and *height*. If continuous
+updates are already active, then they must remain active active and the
+coordinates must be replaced with the last message seen.
+
+If *enable-flag* is zero, then the server must only send
+``FramebufferUpdate`` messages as a result of receiving
+``FramebufferUpdateRequest`` messages. The server must also immediately
+send out a `EndOfContinuousUpdates`_ message. This message must be sent
+out even if continuous updates were already disabled.
+
+The server must ignore all incremental update requests
+(``FramebufferUpdateRequest`` with *incremental* set to non-zero) as
+long as continuous updates are active. Non-incremental updates must
+however be honored, even if the area in such a request does not overlap
+the area specified for continuous updates.
 
 Server to Client Messages
 +++++++++++++++++++++++++
@@ -1646,6 +1688,7 @@ Number      Name
 253         `gii Server Message`_
 252         tight
 250         `xvp Server Message`_
+150 [#off]_ `EndOfContinuousUpdates`_
 =========== ===========================================================
 
 Note that before sending a message with an optional message type a
@@ -1907,6 +1950,21 @@ No. of bytes    Type                 [Value]    Description
 
 The *data-length* will be a multiple of (*sample-format* * *nchannels*)
 as requested by the client in an earlier `QEMU Audio Client Message`_.
+
+EndOfContinuousUpdates
+----------------------
+
+This message is sent whenever the server sees a
+`EnableContinuousUpdates`_ message with *enable* set to a non-zero
+value. It indicates that the server has stopped sending continuous
+updates and is now only reacting to `FramebufferUpdateRequest`_
+messages.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               150        *message-type*
+=============== ==================== ========== =======================
 
 Encodings
 +++++++++
