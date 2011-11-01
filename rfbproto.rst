@@ -2203,12 +2203,12 @@ least-significant specify the height minus one.
 zlib Encoding
 -------------
 
-The zlib encoding uses zlib [#]_ to compress rectangles encoded
+The zlib encoding uses zlib [#zlib]_ to compress rectangles encoded
 according to the `Raw Encoding`_. A single zlib "stream" object is used
 for a given RFB connection, so that zlib rectangles must be encoded and
 decoded strictly in order.
 
-.. [#] see http://www.gzip.org/zlib/
+.. [#zlib] see http://www.gzip.org/zlib/
 
 =============== =================== ===================================
 No. of bytes    Type                Description
@@ -2425,15 +2425,13 @@ compression method.
 zlibhex Encoding
 ----------------
 
-The zlibhex encoding uses zlib [#]_ to optionally compress
+The zlibhex encoding uses zlib [#zlib]_ to optionally compress
 subrectangles according to the `Hextile Encoding`_. Refer to the
 hextile encoding for information on how the rectangle is divided into
 subrectangles and other basic properties of subrectangles. One zlib
 "stream" object is used for subrectangles encoded according to the
 **Raw** subencoding and one zlib "stream" object is used for all other
 subrectangles.
-
-.. [#] see http://www.gzip.org/zlib/
 
 The hextile subencoding bitfield is extended with these bits:
 
@@ -2471,14 +2469,12 @@ subrectangle follows the rules described in the `Hextile Encoding`_.
 ZRLE Encoding
 -------------
 
-ZRLE stands for Zlib [#]_ Run-Length Encoding, and combines zlib
+ZRLE stands for Zlib [#zlib]_ Run-Length Encoding, and combines zlib
 compression, tiling, palettisation and run-length encoding. On the
 wire, the rectangle begins with a 4-byte length field, and is followed
 by that many bytes of zlib-compressed data. A single zlib "stream"
 object is used for a given RFB protocol connection, so that ZRLE
 rectangles must be encoded and decoded strictly in order.
-
-.. [#] see http://www.gzip.org/zlib/
 
 =============== =================== ===================================
 No. of bytes    Type                Description
