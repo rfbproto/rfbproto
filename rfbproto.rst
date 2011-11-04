@@ -396,7 +396,7 @@ Number      Name
 
 The official, up-to-date list is maintained by IANA [#reg]_.
 
-.. [#reg] http://www.ietf.org/assignments/rfb/rfb.xml
+.. [#reg] http://www.iana.org/assignments/rfb/rfb.xml
 
 Once the *security-type* has been decided, data specific to that
 *security-type* follows (see `Security Types`_ for details). At the end
