@@ -1729,7 +1729,7 @@ Number      Name
 252         tight
 253         `gii Server Message`_
 254         VMWare
-255         QEMU
+255         `QEMU Server Message`_
 =========== ===========================================================
 
 .. [#off] **Warning:** Not officially allocated
