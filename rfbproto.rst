@@ -831,20 +831,23 @@ Optional message types are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
-7 [#off]_   FileTransfer
-8 [#off]_   SetScale
-9 [#off]_   SetServerInput
-10 [#off]_  SetSW
-11 [#off]_  TextChat
-12 [#off]_  KeyFrameRequest
-13 [#off]_  KeepAlive
-15 [#off]_  SetScaleFactor
-20 [#off]_  RequestSession
-21 [#off]_  SetSession
-80 [#off]_  NotifyPluginStreaming
+7           FileTransfer
+8           SetScale
+9           SetServerInput
+10          SetSW
+11          TextChat
+12          KeyFrameRequest
+13          KeepAlive
+14          Possibly used in UltraVNC
+15          SetScaleFactor
+16-19       Possibly used in UltraVNC
+20          RequestSession
+21          SetSession
+80          NotifyPluginStreaming
 127         VMWare
 128         Car Connectivity
-150 [#off]_ `EnableContinuousUpdates`_
+150         `EnableContinuousUpdates`_
+248         ClientFence
 249         OLIVE Call Control
 250         `xvp Client Message`_
 251         `SetDesktopSize`_
@@ -853,8 +856,6 @@ Number      Name
 254         VMWare
 255         `QEMU Client Message`_
 =========== ===========================================================
-
-.. [#off] **Warning:** Not officially allocated
 
 The official, up-to-date list is maintained by IANA [#reg]_.
 
@@ -1708,16 +1709,21 @@ Optional message types are:
 =========== ===========================================================
 Number      Name
 =========== ===========================================================
-4 [#off]_   ResizeFrameBuffer
-5 [#off]_   KeyFrameUpdate
-7 [#off]_   FileTransfer
-11 [#off]_  TextChat
-13 [#off]_  KeepAlive
-15 [#off]_  ResizeFrameBuffer
+4           ResizeFrameBuffer
+5           KeyFrameUpdate
+6           Possibly used in UltraVNC
+7           FileTransfer
+8-10        Possibly used in UltraVNC
+11          TextChat
+12          Possibly used in UltraVNC
+13          KeepAlive
+14          Possibly used in UltraVNC
+15          ResizeFrameBuffer
 127         VMWare
 128         Car Connectivity
-150 [#off]_ `EndOfContinuousUpdates`_
+150         `EndOfContinuousUpdates`_
 173 [#off]_ ServerState
+248         ServerFence
 249         OLIVE Call Control
 250         `xvp Server Message`_
 252         tight
@@ -1725,6 +1731,8 @@ Number      Name
 254         VMWare
 255         QEMU
 =========== ===========================================================
+
+.. [#off] **Warning:** Not officially allocated
 
 The official, up-to-date list is maintained by IANA [#reg]_.
 
@@ -2042,14 +2050,14 @@ Other registered encodings are:
 =========================== ===========================================
 Number                      Name
 =========================== ===========================================
-9 [#off]_                   Ultra
-10 [#off]_                  Ultra2
+9                           Ultra
+10                          Ultra2
 15                          TRLE
 17                          Hitachi ZYWRLE
 1000 to 1002                Apple Inc.
 1011                        Apple Inc.
 1024 to 1099                RealVNC
-1100 to 1104                Apple Inc.
+1100 to 1105                Apple Inc.
 -1 to -22                   Tight options
 -33 to -222                 Tight options
 -225                        PointerPos
@@ -2060,24 +2068,26 @@ Number                      Name
 -306                        popa
 -310                        OLIVE Call Control
 -311                        ClientRedirect
+-312                        Fence
+-313                        ContinuousUpdates
 -523 to -528                Car Connectivity
 0x574d5600 to 0x574d56ff    VMWare
-0xc0a1e5ce [#off]_          ExtendedClipboard
-0xc0a1e5cf [#off]_          PluginStreaming
-0xffff0000 [#off]_          Cache
-0xffff0001 [#off]_          CacheEnable
-0xffff0002 [#off]_          XOR zlib
-0xffff0003 [#off]_          XORMonoRect zlib
-0xffff0004 [#off]_          XORMultiColor zlib
-0xffff0005 [#off]_          SolidColor
-0xffff0006 [#off]_          XOREnable
-0xffff0007 [#off]_          CacheZip
-0xffff0008 [#off]_          SolMonoZip
-0xffff0009 [#off]_          UltraZip
-0xffff8000 [#off]_          ServerState
-0xffff8001 [#off]_          EnableKeepAlive
-0xffff8002 [#off]_          FTProtocolVersion
-0xffff8003 [#off]_          Session
+0xc0a1e5ce                  ExtendedClipboard
+0xc0a1e5cf                  PluginStreaming
+0xffff0000                  Cache
+0xffff0001                  CacheEnable
+0xffff0002                  XOR zlib
+0xffff0003                  XORMonoRect zlib
+0xffff0004                  XORMultiColor zlib
+0xffff0005                  SolidColor
+0xffff0006                  XOREnable
+0xffff0007                  CacheZip
+0xffff0008                  SolMonoZip
+0xffff0009                  UltraZip
+0xffff8000                  ServerState
+0xffff8001                  EnableKeepAlive
+0xffff8002                  FTProtocolVersion
+0xffff8003                  Session
 =========================== ===========================================
 
 The official, up-to-date list is maintained by IANA [#reg]_.
