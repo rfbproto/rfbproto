@@ -1153,6 +1153,133 @@ No. of bytes    Type                 [Value]    Description
 *length*        ``U8`` array                    *text*
 =============== ==================== ========== =======================
 
+EnableContinuousUpdates
+-----------------------
+
+This message informs the server to switch between only sending
+`FramebufferUpdate`_ messages as a result of a 
+`FramebufferUpdateRequest`_ message, or sending ``FramebufferUpdate``
+messages continuously.
+
+Note that there is currently no way to determine if the server supports
+this message except for using the `Tight Security Type`_ authentication.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               150        *message-type*
+1               ``U8``                          *enable-flag*
+2               ``U16``                         *x-position*
+2               ``U16``                         *y-position*
+2               ``U16``                         *width*
+2               ``U16``                         *height*
+=============== ==================== ========== =======================
+
+If *enable-flag* is non-zero, then the server can start sending
+``FramebufferUpdate`` messages as needed for the area specified by
+*x-position*, *y-position*, *width*, and *height*. If continuous
+updates are already active, then they must remain active active and the
+coordinates must be replaced with the last message seen.
+
+If *enable-flag* is zero, then the server must only send
+``FramebufferUpdate`` messages as a result of receiving
+``FramebufferUpdateRequest`` messages. The server must also immediately
+send out a `EndOfContinuousUpdates`_ message. This message must be sent
+out even if continuous updates were already disabled.
+
+The server must ignore all incremental update requests
+(``FramebufferUpdateRequest`` with *incremental* set to non-zero) as
+long as continuous updates are active. Non-incremental updates must
+however be honored, even if the area in such a request does not overlap
+the area specified for continuous updates.
+
+xvp Client Message
+------------------
+
+A client supporting the *xvp* extension sends this to request that the
+server initiate a clean shutdown, clean reboot or abrupt reset of the
+system whose framebuffer the client is displaying.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               250        *message-type*
+1                                               *padding*
+1               ``U8``               1          *xvp-extension-version*
+1               ``U8``                          *xvp-message-code*
+=============== ==================== ========== =======================
+
+The possible values for *xvp-message-code* are: 2 - XVP_SHUTDOWN,
+3 - XVP_REBOOT, and 4 - XVP_RESET.  The client must have already
+established that the server supports this extension, by requesting the
+`xvp Pseudo-encoding`_.
+
+SetDesktopSize
+--------------
+
+Requests a change of desktop size. This message is an extension and
+may only be sent if the client has previously received an
+*ExtendedDesktopSize* rectangle.
+
+The server must send an *ExtendedDesktopSize* rectangle for every
+*SetDesktopSize* message received. Several rectangles may be
+sent in a single *FramebufferUpdate* message, but the rectangles must
+not be merged or reordered in any way. Note that rectangles sent for
+other reasons may be interleaved with the ones generated as a result
+of *SetDesktopSize* messages.
+
+Upon a successful request the server must send an *ExtendedDesktopSize*
+rectangle to the requesting client with the exact same information the
+client provided in the corresponding *SetDesktopSize* message.
+*x-position* must be set to 1, indicating a client initiated event, and
+*y-position* must be set to 0, indicating success.
+
+The server must also send an *ExtendedDesktopSize* rectangle to all
+other connected clients, but with *x-position* set to 2, indicating a
+change initiated by another client.
+
+If the server can not or will not satisfy the request, it must send
+an *ExtendedDesktopSize* rectangle to the requesting client with
+*x-position* set to 1 and *y-position* set to the relevant error code.
+All remaining fields are undefined, although the basic structure must
+still be followed. The server must not send an *ExtendedDesktopSize*
+rectangle to any other connected clients.
+
+All *ExtendedDesktopSize* rectangles that are sent as a result of a
+*SetDesktopSize* message should be sent as soon as possible.
+
+======================== ================= ======= ====================
+No. of bytes             Type              [Value] Description
+======================== ================= ======= ====================
+1                        ``U8``            251     *message-type*
+2                                                  *padding*
+2                        ``U16``                   *width*
+2                        ``U16``                   *height*
+1                        ``U8``                    *number-of-screens*
+1                                                  *padding*
+*number-of-screens* * 16 ``SCREEN`` array          *screens*
+======================== ================= ======= ====================
+
+The *width* and *height* indicates the framebuffer size requested. This
+structure is followed by *number-of-screens* number of ``SCREEN``
+structures, which is defined in `ExtendedDesktopSize Pseudo-encoding`_:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+4               ``U32``                         *id*
+2               ``U16``                         *x-position*
+2               ``U16``                         *y-position*
+2               ``U16``                         *width*
+2               ``U16``                         *height*
+4               ``U32``                         *flags*
+=============== =============================== =======================
+
+The *id* field must be preserved upon modification as it determines the
+difference between a moved screen and a newly created one. The client
+should make every effort to preserve the fields it does not wish to
+modify, including any unknown *flags* bits.
+
 gii Client Message
 ------------------
 
@@ -1419,93 +1546,6 @@ request.
 
 The event reports *count* valuators starting with *first*.
 
-SetDesktopSize
---------------
-
-Requests a change of desktop size. This message is an extension and
-may only be sent if the client has previously received an
-*ExtendedDesktopSize* rectangle.
-
-The server must send an *ExtendedDesktopSize* rectangle for every
-*SetDesktopSize* message received. Several rectangles may be
-sent in a single *FramebufferUpdate* message, but the rectangles must
-not be merged or reordered in any way. Note that rectangles sent for
-other reasons may be interleaved with the ones generated as a result
-of *SetDesktopSize* messages.
-
-Upon a successful request the server must send an *ExtendedDesktopSize*
-rectangle to the requesting client with the exact same information the
-client provided in the corresponding *SetDesktopSize* message.
-*x-position* must be set to 1, indicating a client initiated event, and
-*y-position* must be set to 0, indicating success.
-
-The server must also send an *ExtendedDesktopSize* rectangle to all
-other connected clients, but with *x-position* set to 2, indicating a
-change initiated by another client.
-
-If the server can not or will not satisfy the request, it must send
-an *ExtendedDesktopSize* rectangle to the requesting client with
-*x-position* set to 1 and *y-position* set to the relevant error code.
-All remaining fields are undefined, although the basic structure must
-still be followed. The server must not send an *ExtendedDesktopSize*
-rectangle to any other connected clients.
-
-All *ExtendedDesktopSize* rectangles that are sent as a result of a
-*SetDesktopSize* message should be sent as soon as possible.
-
-======================== ================= ======= ====================
-No. of bytes             Type              [Value] Description
-======================== ================= ======= ====================
-1                        ``U8``            251     *message-type*
-2                                                  *padding*
-2                        ``U16``                   *width*
-2                        ``U16``                   *height*
-1                        ``U8``                    *number-of-screens*
-1                                                  *padding*
-*number-of-screens* * 16 ``SCREEN`` array          *screens*
-======================== ================= ======= ====================
-
-The *width* and *height* indicates the framebuffer size requested. This
-structure is followed by *number-of-screens* number of ``SCREEN``
-structures, which is defined in `ExtendedDesktopSize Pseudo-encoding`_:
-
-=============== =============================== =======================
-No. of bytes    Type                            Description
-=============== =============================== =======================
-4               ``U32``                         *id*
-2               ``U16``                         *x-position*
-2               ``U16``                         *y-position*
-2               ``U16``                         *width*
-2               ``U16``                         *height*
-4               ``U32``                         *flags*
-=============== =============================== =======================
-
-The *id* field must be preserved upon modification as it determines the
-difference between a moved screen and a newly created one. The client
-should make every effort to preserve the fields it does not wish to
-modify, including any unknown *flags* bits.
-
-xvp Client Message
-------------------
-
-A client supporting the *xvp* extension sends this to request that the
-server initiate a clean shutdown, clean reboot or abrupt reset of the
-system whose framebuffer the client is displaying.
-
-=============== ==================== ========== =======================
-No. of bytes    Type                 [Value]    Description
-=============== ==================== ========== =======================
-1               ``U8``               250        *message-type*
-1                                               *padding*
-1               ``U8``               1          *xvp-extension-version*
-1               ``U8``                          *xvp-message-code*
-=============== ==================== ========== =======================
-
-The possible values for *xvp-message-code* are: 2 - XVP_SHUTDOWN,
-3 - XVP_REBOOT, and 4 - XVP_RESET.  The client must have already
-established that the server supports this extension, by requesting the
-`xvp Pseudo-encoding`_.
-
 QEMU Client Message
 -------------------
 
@@ -1649,46 +1689,6 @@ Value  No. of bytes  Type
 ====== ============= =======
 
 The *nchannels* field must be either ``1`` (mono) or ``2`` (stereo).
-
-EnableContinuousUpdates
------------------------
-
-This message informs the server to switch between only sending
-`FramebufferUpdate`_ messages as a result of a 
-`FramebufferUpdateRequest`_ message, or sending ``FramebufferUpdate``
-messages continuously.
-
-Note that there is currently no way to determine if the server supports
-this message except for using the `Tight Security Type`_ authentication.
-
-=============== ==================== ========== =======================
-No. of bytes    Type                 [Value]    Description
-=============== ==================== ========== =======================
-1               ``U8``               150        *message-type*
-1               ``U8``                          *enable-flag*
-2               ``U16``                         *x-position*
-2               ``U16``                         *y-position*
-2               ``U16``                         *width*
-2               ``U16``                         *height*
-=============== ==================== ========== =======================
-
-If *enable-flag* is non-zero, then the server can start sending
-``FramebufferUpdate`` messages as needed for the area specified by
-*x-position*, *y-position*, *width*, and *height*. If continuous
-updates are already active, then they must remain active active and the
-coordinates must be replaced with the last message seen.
-
-If *enable-flag* is zero, then the server must only send
-``FramebufferUpdate`` messages as a result of receiving
-``FramebufferUpdateRequest`` messages. The server must also immediately
-send out a `EndOfContinuousUpdates`_ message. This message must be sent
-out even if continuous updates were already disabled.
-
-The server must ignore all incremental update requests
-(``FramebufferUpdateRequest`` with *incremental* set to non-zero) as
-long as continuous updates are active. Non-incremental updates must
-however be honored, even if the area in such a request does not overlap
-the area specified for continuous updates.
 
 Server to Client Messages
 +++++++++++++++++++++++++
@@ -1841,6 +1841,51 @@ No. of bytes    Type                 [Value]    Description
 *length*        ``U8`` array                    *text*
 =============== ==================== ========== =======================
 
+EndOfContinuousUpdates
+----------------------
+
+This message is sent whenever the server sees a
+`EnableContinuousUpdates`_ message with *enable* set to a non-zero
+value. It indicates that the server has stopped sending continuous
+updates and is now only reacting to `FramebufferUpdateRequest`_
+messages.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               150        *message-type*
+=============== ==================== ========== =======================
+
+xvp Server Message
+------------------
+
+This has the following format:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               250        *message-type*
+1                                               *padding*
+1               ``U8``               1          *xvp-extension-version*
+1               ``U8``                          *xvp-message-code*
+=============== ==================== ========== =======================
+
+The possible values for *xvp-message-code* are: 0 - XVP_FAIL and 1 -
+XVP_INIT.
+
+A server which supports the *xvp* extension declares this by sending a
+message with an XVP_INIT *xvp-message-code* when it receives a request
+from the client to use the `xvp Pseudo-encoding`_.  The server must
+specify in this message the highest *xvp-extension-version* it supports:
+the client may assume that the server supports all versions from 1 up to
+this value.  The client is then free to use any supported version.
+Currently, only version 1 is defined.
+
+A server which subsequently receives an `xvp Client Message`_ requesting
+an operation which it is unable to perform, informs the client of this
+by sending a message with an XVP_FAIL *xvp-message-code*, and the same
+*xvp-extension-version* as included in the client's operation request.
+
 gii Server Message
 ------------------
 
@@ -1891,36 +1936,6 @@ are the actual message sub type.
 *device-origin* is used as a handle to the device in subsequent
 communications. A *device-origin* of zero indicates device creation
 failure.
-
-xvp Server Message
-------------------
-
-This has the following format:
-
-=============== ==================== ========== =======================
-No. of bytes    Type                 [Value]    Description
-=============== ==================== ========== =======================
-1               ``U8``               250        *message-type*
-1                                               *padding*
-1               ``U8``               1          *xvp-extension-version*
-1               ``U8``                          *xvp-message-code*
-=============== ==================== ========== =======================
-
-The possible values for *xvp-message-code* are: 0 - XVP_FAIL and 1 -
-XVP_INIT.
-
-A server which supports the *xvp* extension declares this by sending a
-message with an XVP_INIT *xvp-message-code* when it receives a request
-from the client to use the `xvp Pseudo-encoding`_.  The server must
-specify in this message the highest *xvp-extension-version* it supports:
-the client may assume that the server supports all versions from 1 up to
-this value.  The client is then free to use any supported version.
-Currently, only version 1 is defined.
-
-A server which subsequently receives an `xvp Client Message`_ requesting
-an operation which it is unable to perform, informs the client of this
-by sending a message with an XVP_FAIL *xvp-message-code*, and the same
-*xvp-extension-version* as included in the client's operation request.
 
 QEMU Server Message
 -------------------
@@ -1995,21 +2010,6 @@ No. of bytes    Type                 [Value]    Description
 
 The *data-length* will be a multiple of (*sample-format* * *nchannels*)
 as requested by the client in an earlier `QEMU Audio Client Message`_.
-
-EndOfContinuousUpdates
-----------------------
-
-This message is sent whenever the server sees a
-`EnableContinuousUpdates`_ message with *enable* set to a non-zero
-value. It indicates that the server has stopped sending continuous
-updates and is now only reacting to `FramebufferUpdateRequest`_
-messages.
-
-=============== ==================== ========== =======================
-No. of bytes    Type                 [Value]    Description
-=============== ==================== ========== =======================
-1               ``U8``               150        *message-type*
-=============== ==================== ========== =======================
 
 Encodings
 +++++++++
