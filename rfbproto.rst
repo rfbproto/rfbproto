@@ -2041,6 +2041,7 @@ Number       Name
 -307         `DesktopName Pseudo-encoding`_
 -308         `ExtendedDesktopSize Pseudo-encoding`_
 -309         `xvp Pseudo-encoding`_
+-313         `ContinuousUpdates Pseudo-encoding`_
 -412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
 -763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
 ============ ==========================================================
@@ -2069,7 +2070,6 @@ Number                      Name
 -310                        OLIVE Call Control
 -311                        ClientRedirect
 -312                        Fence
--313                        ContinuousUpdates
 -523 to -528                Car Connectivity
 0x574d5600 to 0x574d56ff    VMWare
 0xc0a1e5ce                  ExtendedClipboard
@@ -3163,6 +3163,16 @@ wishes to use the *xvp* extension.  If the server supports this, it
 replies with a message of type `xvp Server Message`_, using an
 *xvp-message-code* of *XVP_INIT*.  This informs the client that it may
 then subsequently send messages of type `xvp Client Message`_.
+
+ContinuousUpdates Pseudo-encoding
+---------------------------------
+
+A client which requests the *ContinuousUpdates* pseudo-encoding is
+declaring that it wishes to use the `EnableContinuousUpdates`_
+extension. The server must send a `EndOfContinuousUpdates`_ message the
+first time it sees a ``SetEncodings`` message with the
+*ContinuousUpdates* pseudo-encoding, in order to inform the client that
+the extension is supported.
 
 JPEG Fine-Grained Quality Level Pseudo-encoding
 -----------------------------------------------
