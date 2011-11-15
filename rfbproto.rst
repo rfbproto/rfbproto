@@ -847,7 +847,7 @@ Number      Name
 127         VMWare
 128         Car Connectivity
 150         `EnableContinuousUpdates`_
-248         ClientFence
+248         `ClientFence`_
 249         OLIVE Call Control
 250         `xvp Client Message`_
 251         `SetDesktopSize`_
@@ -1192,6 +1192,75 @@ The server must ignore all incremental update requests
 long as continuous updates are active. Non-incremental updates must
 however be honored, even if the area in such a request does not overlap
 the area specified for continuous updates.
+
+ClientFence
+-----------
+
+A client supporting the *Fence* extension sends this to request a
+synchronisation of the data stream.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               248        *message-type*
+3                                               *padding*
+4               ``U32``                         *flags*
+1               ``U8``                          *length*
+*length*        ``U8`` array                    *payload*
+=============== ==================== ========== =======================
+
+The *flags* byte informs the server if this is a new request, or a
+response to a server request sent earlier, as well as what kind of
+synchronisation that is desired. The server should not delay the
+response more than necessary, even if the synchronisation requirements
+would allow it.
+
+=============== =======================================================
+Bit             Description
+=============== =======================================================
+0               **BlockBefore**
+1               **BlockAfter**
+2               **SyncNext**
+3-30            Currently unused
+31              **Request**
+=============== =======================================================
+
+The server should respond with a `ServerFence`_ with the **Request**
+bit cleared, as well as clearing any bits it does not understand. The
+remaining bits should remain set in the response. This allows the
+client to determine which flags the server supports when new ones are
+defined in the future.
+
+**BlockBefore**
+    All messages preceeding this one must have finished processing and
+    taken effect before the response is sent.
+
+**BlockAfter**
+    All messages following this one must not start processing until the
+    response is sent.
+
+**SyncNext**
+    The message following this one must be executed in an atomic manner
+    so that anything preceeding the fence response **must not** be
+    affected by the message, and anything following the fence response
+    *must* be affected by the message. The primary purpose of this
+    synchronisation is to allow safe usage of stream altering commands
+    such as `SetPixelFormat`_.
+
+    If **BlockAfter** is set then that synchronisation must be relaxed
+    to allow processing of the following message. Any message after
+    that will still be affected by both flags though.
+
+**Request**
+    Indicates that this is a new request and that a response is
+    expected. If this bit is cleared then this message is a response to
+    an earlier request.
+
+The client can also include a chunk of data to differentiate between
+responses and to avoid keeping state. This data is specified using
+*length* and *payload*. The size of this data is limited to 64 bytes in
+order to minimise the disturbance to highly parallel clients and
+servers.
 
 xvp Client Message
 ------------------
@@ -1723,7 +1792,7 @@ Number      Name
 128         Car Connectivity
 150         `EndOfContinuousUpdates`_
 173 [#off]_ ServerState
-248         ServerFence
+248         `ServerFence`_
 249         OLIVE Call Control
 250         `xvp Server Message`_
 252         tight
@@ -1855,6 +1924,25 @@ No. of bytes    Type                 [Value]    Description
 =============== ==================== ========== =======================
 1               ``U8``               150        *message-type*
 =============== ==================== ========== =======================
+
+ServerFence
+-----------
+
+A server supporting the *Fence* extension sends this to request a
+synchronisation of the data stream.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               248        *message-type*
+3                                               *padding*
+4               ``U32``                         *flags*
+1               ``U8``                          *length*
+*length*        ``U8`` array                    *payload*
+=============== ==================== ========== =======================
+
+The format and semantics is identical to `ClientFence`_, but with the
+roles of the client and server reversed.
 
 xvp Server Message
 ------------------
@@ -2041,6 +2129,7 @@ Number       Name
 -307         `DesktopName Pseudo-encoding`_
 -308         `ExtendedDesktopSize Pseudo-encoding`_
 -309         `xvp Pseudo-encoding`_
+-312         `Fence Pseudo-encoding`_
 -313         `ContinuousUpdates Pseudo-encoding`_
 -412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
 -763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
@@ -2069,7 +2158,6 @@ Number                      Name
 -306                        popa
 -310                        OLIVE Call Control
 -311                        ClientRedirect
--312                        Fence
 -523 to -528                Car Connectivity
 0x574d5600 to 0x574d56ff    VMWare
 0xc0a1e5ce                  ExtendedClipboard
@@ -3163,6 +3251,16 @@ wishes to use the *xvp* extension.  If the server supports this, it
 replies with a message of type `xvp Server Message`_, using an
 *xvp-message-code* of *XVP_INIT*.  This informs the client that it may
 then subsequently send messages of type `xvp Client Message`_.
+
+Fence Pseudo-encoding
+---------------------
+
+A client which requests the *Fence* pseudo-encoding is declaring that
+it supports and/or wishes to use the *Fence* extension. The server
+should send a `ServerFence`_ the first time it sees a ``SetEncodings``
+message with the *Fence* pseudo-encoding, in order to inform the client
+that this extension is supported. The message can use any flags or
+payload.
 
 ContinuousUpdates Pseudo-encoding
 ---------------------------------
