@@ -1791,7 +1791,7 @@ Number      Name
 127         VMWare
 128         Car Connectivity
 150         `EndOfContinuousUpdates`_
-173 [#off]_ ServerState
+173         ServerState
 248         `ServerFence`_
 249         OLIVE Call Control
 250         `xvp Server Message`_
@@ -1800,8 +1800,6 @@ Number      Name
 254         VMWare
 255         `QEMU Server Message`_
 =========== ===========================================================
-
-.. [#off] **Warning:** Not officially allocated
 
 The official, up-to-date list is maintained by IANA [#reg]_.
 
