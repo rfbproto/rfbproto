@@ -1321,7 +1321,7 @@ All *ExtendedDesktopSize* rectangles that are sent as a result of a
 No. of bytes             Type              [Value] Description
 ======================== ================= ======= ====================
 1                        ``U8``            251     *message-type*
-2                                                  *padding*
+1                                                  *padding*
 2                        ``U16``                   *width*
 2                        ``U16``                   *height*
 1                        ``U8``                    *number-of-screens*
