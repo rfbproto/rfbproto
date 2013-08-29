@@ -2976,7 +2976,7 @@ Client Semantics
 The client should assume that the server expects the framebuffer data
 to be retained when the framebuffer dimensions change. This requirement
 can be satisfied either by actually retaining the framebuffer data, or
-by making sure that *incremental* is set to non-zero in the next
+by making sure that *incremental* is set to zero (false) in the next
 *FramebufferUpdateRequest*.
 
 The principle of one framebuffer update being a transition from one
