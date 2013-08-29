@@ -2142,6 +2142,9 @@ Number                      Name
 10                          Ultra2
 15                          TRLE
 17                          Hitachi ZYWRLE
+20                          H.264
+21                          JPEG
+22                          JRLE
 1000 to 1002                Apple Inc.
 1011                        Apple Inc.
 1024 to 1099                RealVNC
@@ -2157,6 +2160,7 @@ Number                      Name
 -310                        OLIVE Call Control
 -311                        ClientRedirect
 -523 to -528                Car Connectivity
+0x48323634                  VA H.264
 0x574d5600 to 0x574d56ff    VMWare
 0xc0a1e5ce                  ExtendedClipboard
 0xc0a1e5cf                  PluginStreaming
