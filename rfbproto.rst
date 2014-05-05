@@ -373,6 +373,7 @@ Number      Name
 1           `None`_
 2           `VNC Authentication`_
 16          `Tight Security Type`_
+19          `VeNCrypt`_
 =========== ===========================================================
 
 Other registered security types are:
@@ -386,7 +387,6 @@ Number      Name
 7-15        RealVNC
 17          Ultra
 18          TLS
-19          VeNCrypt
 20          SASL
 21          MD5 hash authentication
 22          xvp
@@ -611,6 +611,153 @@ at security type `None`_.
 
 Note that the `ServerInit`_ message is extended when the Tight security
 type has been activated.
+
+VeNCrypt
+--------
+
+The VeNCrypt security type is a generic authentication method which
+encapsulates multiple authentication subtypes.
+
+After VeNCrypt security type is selected server sends the highest
+version of VeNCrypt it can support. Although two versions exist, 0.1
+and 0.2, this document describes only newer version 0.2.
+
+=============== ======= ======= =======================================
+No. of bytes    Type    Value   Description
+=============== ======= ======= =======================================
+1               ``U8``  0       Major version number
+1               ``U8``  2       Minor version number
+=============== ======= ======= =======================================
+
+Then client sends back the highest VeNCrypt version it can support, up to
+version that it received from the server.
+
+=============== ======= ===============================================
+No. of bytes    Type    Description
+=============== ======= ===============================================
+1               ``U8``  Major version number
+1               ``U8``  Minor version number
+=============== ======= ===============================================
+
+After that server sends one byte response which indicates if everything
+is OK. Non-zero value means failure and connection will be closed. Zero
+value means success.
+
+=============== ======= ===============================================
+No. of bytes    Type    Description
+=============== ======= ===============================================
+1               ``U8``  Ack
+=============== ======= ===============================================
+
+Then server sends list of supported VeNCrypt subtypes.
+
+=============== =============== =======================================
+No. of bytes    Type            Description
+=============== =============== =======================================
+1               ``U8``          subtypes length
+subtypes length ``U32`` array   subtypes
+=============== =============== =======================================
+
+Following VeNCrypt subtypes are defined in this document:
+
+=============== =============== =======================================
+Code            Name            Description
+=============== =============== =======================================
+256             Plain           Plain authentication (should be never used)
+257             TLSNone         TLS encryption with no authentication
+258             TLSVnc          TLS encryption with VNC authentication
+259             TLSPlain        TLS encryption with Plain authentication
+260             X509None        X509 encryption with plain password
+261             X509Vnc         X509 encryption with VNC authentication
+262             X509Plain       X509 encryption with Plain authentication
+263             TLSSASL         TLS encryption with SASL authentication
+264             X509SASL        X509 encryption with SASL authentication
+=============== =============== =======================================
+
+After that client selects one VeNCrypt subtype sends back number of that
+type.
+
+=============== ======= ===============================================
+No. of bytes    Type    Description
+=============== ======= ===============================================
+1               ``U32`` Selected VeNCrypt subtype
+=============== ======= ===============================================
+
+If client supports none of the VeNCrypt subtypes it terminates
+connection.
+
+When subtype is selected authentication continues as written in particular
+VeNCrypt subtype description.
+
+Subtypes with TLS or X509 prefix
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+All those subtypes use TLS-encrypted stream and server use anonymous X509
+certificate (subtypes with the TLS prefix) or valid X509 certificate
+(subtypes with the X509 prefix). When session is negotiated, all further
+traffic is send via this encrypted channel.
+
+After receiving the U32 confirmation of the VeNCrypt subtype,
+the TLS handshake is performed between the client and server.
+If the handshake is unsuccessful the connection must be closed
+and no further RFB protocol messages attempted.
+
+Note about TLS parameters, like algorithm and key length. VeNCrypt
+doesn't enforce any restriction, setting should be determined by local
+security policy on client, respective server, side. This also applies
+for validity of the server certificate, client side can decide if it
+wants to accept invalid server certificate.
+
+In case TLS handshake is not successful, detailed information of failure
+can be obtained from underlying TLS stream and both sides must close the
+connection.
+
+In case TLS handshake is successful and TLS channel is estabilished,
+VeNCrypt authentication can continue.
+
+Subtypes with None suffix
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After TLS handshake, authentication is successful and both sides
+can continue with the `SecurityResult`_ message.
+
+Subtypes with Vnc suffix
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Authentication continues with the `VNC Authentication`_ method when
+TLS handshake is completed.
+
+Plain subtype
+~~~~~~~~~~~~~
+
+Client sends the username and password in the following form:
+
+================= ============= =========================================
+No. of bytes      Type          Description
+================= ============= =========================================
+4                 ``U32``       *username-length*
+4                 ``U32``       *password-length*
+*username-length* ``U8`` array  *username*
+*password-length* ``U8`` array  *password*
+================= ============= =========================================
+
+After that server verifies if supplied credentials are correct and
+continues with the `SecurityResult`_ message.
+
+Subtypes with Plain suffix
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Authentication continues with the `Plain subtype`_ method when TLS handshake
+is completed.
+
+Subtypes with SASL suffix
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Authentication continues with the SASL method when TLS handshake is completed.
+
+..
+  XXX: Correct link to the SASL method when it gets accepted.
+
 
 Initialisation Messages
 +++++++++++++++++++++++
