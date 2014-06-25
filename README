@@ -4,7 +4,9 @@ and the purpose of this version is to be a complete description of the
 protocol including extensions.
 
 If you wish to discuss the protocol, or submit changes, do so on the
-rfbproto mailing list (tigervnc-rfbproto@lists.sourceforge.net).
+rfbproto mailing list (rfbproto@googlegroups.com). Small fixes can also
+be submitted as pull requests directly on github. Adhere to the
+required style of commit messages and documentation though.
 
 Note that before any new extensions can be added to the document, you
 must first obtain an official number allocation from RealVNC Ltd. You
