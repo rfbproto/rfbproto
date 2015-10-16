@@ -1514,7 +1514,7 @@ No. of bytes    Type                 [Value]    Description
 =============== ==================== ========== =======================
 1               ``U8``               253        *message-type*
 1               ``U8``               1 or 129   *endian-and-sub-type*
-2               ``EU16``             4          *length*
+2               ``EU16``             2          *length*
 2               ``EU16``             1          *version*
 =============== ==================== ========== =======================
 
@@ -1534,22 +1534,22 @@ Device Creation
 After establishing the *gii* protocol extension version, the client
 proceeds by requesting creation of one or more devices.
 
-===================== =============== ========== ======================
-No. of bytes          Type            [Value]    Description
-===================== =============== ========== ======================
-1                     ``U8``          253        *message-type*
-1                     ``U8``          2 or 130   *endian-and-sub-type*
-2                     ``EU16``        2          *length*
-31                    ``U8`` array               *device-name*
-1                     ``U8``          0          *nul-terminator*
-4                     ``EU32``                   *vendor-id*
-4                     ``EU32``                   *product-id*
-4                     ``EVENT_MASK``             *can-generate*
-4                     ``EU32``                   *num-registers*
-4                     ``EU32``                   *num-valuators*
-4                     ``EU32``                   *num-buttons*
+===================== =============== ========================== ======================
+No. of bytes          Type            [Value]                    Description
+===================== =============== ========================== ======================
+1                     ``U8``          253                        *message-type*
+1                     ``U8``          2 or 130                   *endian-and-sub-type*
+2                     ``EU16``        56 + *num-valuators* * 116 *length*
+31                    ``U8`` array                               *device-name*
+1                     ``U8``          0                          *nul-terminator*
+4                     ``EU32``                                   *vendor-id*
+4                     ``EU32``                                   *product-id*
+4                     ``EVENT_MASK``                             *can-generate*
+4                     ``EU32``                                   *num-registers*
+4                     ``EU32``                                   *num-valuators*
+4                     ``EU32``                                   *num-buttons*
 *num-valuators* * 116 ``VALUATOR``
-===================== =============== ========== ======================
+===================== =============== ========================== ======================
 
 *endian-and-sub-type* is a bit-field with the leftmost bit indicating
 big endian if set, and little endian if cleared. The rest of the bits
