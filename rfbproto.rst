@@ -1288,8 +1288,7 @@ ClientCutText
 
 The client has new ISO 8859-1 (Latin-1) text in its cut buffer. Ends of
 lines are represented by the linefeed / newline character (value 10)
-alone. No carriage-return (value 13) is needed. There is currently no
-way to transfer text outside the Latin-1 character set.
+alone. No carriage-return (value 13) is needed.
 
 =============== ==================== ========== =======================
 No. of bytes    Type                 [Value]    Description
@@ -1299,6 +1298,9 @@ No. of bytes    Type                 [Value]    Description
 4               ``U32``                         *length*
 *length*        ``U8`` array                    *text*
 =============== ==================== ========== =======================
+
+See also `Extended Clipboard Pseudo-Encoding`_ which modifies the
+behaviour of this message.
 
 EnableContinuousUpdates
 -----------------------
@@ -2043,8 +2045,7 @@ ServerCutText
 
 The server has new ISO 8859-1 (Latin-1) text in its cut buffer. Ends of
 lines are represented by the linefeed / newline character (value 10)
-alone. No carriage-return (value 13) is needed. There is currently no
-way to transfer text outside the Latin-1 character set.
+alone. No carriage-return (value 13) is needed.
 
 =============== ==================== ========== =======================
 No. of bytes    Type                 [Value]    Description
@@ -2054,6 +2055,9 @@ No. of bytes    Type                 [Value]    Description
 4               ``U32``                         *length*
 *length*        ``U8`` array                    *text*
 =============== ==================== ========== =======================
+
+See also `Extended Clipboard Pseudo-Encoding`_ which modifies the
+behaviour of this message.
 
 EndOfContinuousUpdates
 ----------------------
@@ -2278,6 +2282,7 @@ Number       Name
 -313         `ContinuousUpdates Pseudo-encoding`_
 -412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
 -763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
+0xc0a1e5ce   `Extended Clipboard Pseudo-encoding`_
 ============ ==========================================================
 
 Other registered encodings are:
@@ -2309,7 +2314,6 @@ Number                      Name
 -523 to -528                Car Connectivity
 0x48323634                  VA H.264
 0x574d5600 to 0x574d56ff    VMWare
-0xc0a1e5ce                  ExtendedClipboard
 0xc0a1e5cf                  PluginStreaming
 0xffff0000                  Cache
 0xffff0001                  CacheEnable
@@ -3473,3 +3477,153 @@ The values for this pseudo-encoding are defined as follows:
 
 This pseudo-encoding was originally intended for use with JPEG-encoded
 subrectangles, but it could be used with other types of image encoding as well.
+
+Extended Clipboard Pseudo-Encoding
+----------------------------------
+
+A client which requests the *Extended Clipboard* pseudo-encoding is
+declaring that it supports the extended versions of the
+`ClientCutText`_ and `ServerCutText`_ messages.
+
+The format of these messages are altered so that *length* is now signed
+rather than unsigned:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               6/3        *message-type*
+3                                               *padding*
+4               ``S32``                         *length*
+=============== ==================== ========== =======================
+
+A positive value of *length* indicates that the message follows the
+original format with 8859-1 text data:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+*length*        ``U8`` array                    *text*
+=============== ==================== ========== =======================
+
+A negative value of *length* indicates that the extended message format
+is used and *abs(length)* is the total number of following bytes.
+
+All messages start with a header:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+4               ``U32``                         *flags*
+=============== ==================== ========== =======================
+
+The bits of *flags* have the following meaning:
+
+=============== =======================================================
+Bit             Description
+=============== =======================================================
+0               *text*
+1               *rtf*
+2               *html*
+3               *dib*
+4               *files*
+5-15            Reserved for future formats
+16-23           Reserved
+24              *caps*
+25              *request*
+26              *peek*
+27              *notify*
+28              *provide*
+29-31           Reserved for future actions
+=============== =======================================================
+
+The different formats are:
+
+*text*
+    Plain, unformatted text using the UTF-8 encoding. End of line is
+    represented by carriage-return and linefeed / newline pairs (values
+    13 and 10). The text must be followed by a terminating null even
+    though the length is also explicitly given.
+
+*rtf*
+    Microsoft Rich Text Format.
+
+*html*
+    Microsoft HTML clipboard fragments.
+
+*dib*
+    Microsoft Device Independent Bitmap v5. A file header must not be
+    included.
+
+*files*
+    Currently reserved but not defined.
+
+If *caps* is set then the other bits indicate which formats and actions
+that the sender is willing to receive. Following *flags* is an array
+indicating the maximing unsolicited size for each format:
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+*formats* * 4   ``U32`` array                   *sizes*
+=============== ==================== ========== =======================
+
+The number of entries in *sizes* corresponds to the number of format
+bits set in *flags* (bit 0-15).
+
+The server must send a `ServerCutText`_ message with *caps* set on each
+`SetEncodings`_ message received which includes the *Extended
+Clipboard* pseudo-encoding.
+
+The client may send a `ClientCutText`_ message with *caps* set back to
+indicate its capabilities. Otherwise the client is assumed to support
+*text*, *rtf*, *html*, *request*, *notify* and *provide* and a maximum
+size of 20 MiB for *text* and 0 bytes for the other types.
+
+Note that it is recommended to set all sizes to 0 bytes to force all
+clipboard updates to be sent in the form of a *notify* action. Failing
+to do so makes it ambiguous if an incoming message indicates a
+completely new set of formats, or an update to previous formats caused
+by size restrictions. It may be possible to also resolve this ambiguity
+using *peek* actions.
+
+Also be aware that there are some implementations that deviate from the
+behaviour specified here. The prominent changes are that *dib* is also
+in the default set of supported formats, that default limits are now
+10 MiB for *text*, 2 MiB for *rtf* and *html*, and 0 bytes for *dib*,
+and that the client ignores the advertised formats and maximum sizes
+given in the *caps* message.
+
+If *caps* is not set then only one of the other actions (bit 24-31) may
+be set.
+
+*request*
+    The recipient should respond with a *provide* message with the
+    clipboard data for the formats indicated in *flags*. No other data
+    is provided with this message.
+
+*peek*
+    The recipient should send a new *notify* message indicating which
+    formats are available. No other bits in *flags* need to be set and
+    no other data is provided with this message.
+
+*notify*
+    This message indicates which formats are available on the remote
+    side and should be sent whenever the clipboard changes, or as a
+    response to a *peek* message. The available formats are specified
+    in *flags* and no other data is provided with this message.
+
+*provide*
+    This message includes the actual clipboard data and should be sent
+    whenever the clipboard changes and the data for each format is less
+    than the respective specified maximum size, or as a response to a
+    *request* message.
+
+    The header is followed by a Zlib [#zlib]_ stream which contains a
+    pair of *size* and *data* for each format indicated in *caps*:
+
+    =============== ==================== ========== ===================
+    No. of bytes    Type                 [Value]    Description
+    =============== ==================== ========== ===================
+    4               ``U32``                         *size*
+    *size*          ``U8`` array                    *data*
+    =============== ==================== ========== ===================
