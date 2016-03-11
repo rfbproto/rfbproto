@@ -1338,9 +1338,9 @@ out even if continuous updates were already disabled.
 
 The server must ignore all incremental update requests
 (``FramebufferUpdateRequest`` with *incremental* set to non-zero) as
-long as continuous updates are active. Non-incremental updates must
-however be honored, even if the area in such a request does not overlap
-the area specified for continuous updates.
+long as continuous updates are active. Non-incremental update requests
+must however be honored, even if the area in such a request does not
+overlap the area specified for continuous updates.
 
 ClientFence
 -----------
