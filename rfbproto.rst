@@ -3302,7 +3302,7 @@ The server must also send an *ExtendedDesktopSize* rectangle in
 response to a *SetDesktopSize* message, indicating the result.
 
 For a full description of server behaviour as a result of the
-*SetDesktopSize* message, `SetDesktopSize`_.
+*SetDesktopSize* message, see `SetDesktopSize`_.
 
 Rectangles sent as a result of a *SetDesktopSize* message must be sent
 as soon as possible. Rectangles sent for other reasons may be subjected
