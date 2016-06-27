@@ -1384,21 +1384,43 @@ defined in the future.
     All messages preceeding this one must have finished processing and
     taken effect before the response is sent.
 
+    Messages following this one are unaffected and may be processed in
+    any order the protocol permits, even before the response is sent.
+
 **BlockAfter**
     All messages following this one must not start processing until the
+    response is sent.
+
+    Messages preceeding this one are unaffected and may be processed in
+    any order the protocol permits, even being delayed until after the
     response is sent.
 
 **SyncNext**
     The message following this one must be executed in an atomic manner
     so that anything preceeding the fence response **must not** be
     affected by the message, and anything following the fence response
-    *must* be affected by the message. The primary purpose of this
-    synchronisation is to allow safe usage of stream altering commands
-    such as `SetPixelFormat`_.
+    **must** be affected by the message.
 
-    If **BlockAfter** is set then that synchronisation must be relaxed
-    to allow processing of the following message. Any message after
-    that will still be affected by both flags though.
+    Anything unaffected by the following message can be sent at any
+    time the protocol permits.
+
+    The primary purpose of this synchronisation is to allow safe usage
+    of stream altering commands such as `SetPixelFormat`_, which would
+    impose strict ordering on `FramebufferUpdate`_ messages even with
+    asynchrounous extensions such as the
+    `ContinuousUpdates Pseudo-encoding`_.
+
+    If **BlockAfter** is also set then the interaction between the two
+    flags can be ambiguous. In this case we relax the requirement for
+    **BlockAfter** and allow the following message (the one made atomic
+    by **SyncNext**) to be processed before a response is sent. All
+    messages after that first one are still subjected to the semantics
+    of **BlockAfter** however. The behaviour will be similar to the
+    following series of messages:
+
+        1. *ClientFence* with **SyncNext**
+        2. *message made atomic*
+        3. *ClientFence* with **BlockAfter**
 
 **Request**
     Indicates that this is a new request and that a response is
