@@ -674,8 +674,8 @@ Code            Name            Description
 264             X509SASL        X509 encryption with SASL authentication
 =============== =============== =======================================
 
-After that client selects one VeNCrypt subtype sends back number of that
-type.
+After that client selects one VeNCrypt subtype and sends back the
+number of that type.
 
 =============== ======= ===============================================
 No. of bytes    Type    Description
