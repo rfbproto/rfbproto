@@ -686,6 +686,16 @@ No. of bytes    Type    Description
 If client supports none of the VeNCrypt subtypes it terminates
 connection.
 
+For TLS and X509 subtypes, the server then sends a one byte response
+which indicates if everything is OK. Non-one value means failure and
+connection will be closed. One value means success.
+
+=============== ======= ===============================================
+No. of bytes    Type    Description
+=============== ======= ===============================================
+1               ``U8``  Ack
+=============== ======= ===============================================
+
 When subtype is selected authentication continues as written in particular
 VeNCrypt subtype description.
 
