@@ -674,8 +674,8 @@ Code            Name            Description
 264             X509SASL        X509 encryption with SASL authentication
 =============== =============== =======================================
 
-After that client selects one VeNCrypt subtype sends back number of that
-type.
+After that client selects one VeNCrypt subtype and sends back the
+number of that type.
 
 =============== ======= ===============================================
 No. of bytes    Type    Description
@@ -685,6 +685,16 @@ No. of bytes    Type    Description
 
 If client supports none of the VeNCrypt subtypes it terminates
 connection.
+
+After that server sends one byte response which indicates if everything
+is OK. Non-one value means failure and connection will be closed. One
+value means success.
+
+=============== ======= ===============================================
+No. of bytes    Type    Description
+=============== ======= ===============================================
+1               ``U8``  Ack
+=============== ======= ===============================================
 
 When subtype is selected authentication continues as written in particular
 VeNCrypt subtype description.
