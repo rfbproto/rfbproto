@@ -674,6 +674,9 @@ Code            Name            Description
 264             X509SASL        X509 encryption with SASL authentication
 =============== =============== =======================================
 
+In addition, any of the normal VNC security types (except VeNCrypt) may
+be sent.
+
 After that client selects one VeNCrypt subtype and sends back the
 number of that type.
 
