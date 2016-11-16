@@ -252,7 +252,7 @@ themselves) are in big endian order (most significant byte first).
 However, some protocol extensions use protocol messages that have types
 that may be in little endian order. These endian agnostic types are
 ``EU16``, ``EU32``, ``ES16``, ``ES32``, with some extension specific
-indicator of the endianess.
+indicator of the endianness.
 
 The type ``PIXEL`` is taken to mean a pixel value of *bytesPerPixel*
 bytes, where 8 * *bytesPerPixel* is the number of *bits-per-pixel* as
@@ -1394,7 +1394,7 @@ client to determine which flags the server supports when new ones are
 defined in the future.
 
 **BlockBefore**
-    All messages preceeding this one must have finished processing and
+    All messages preceding this one must have finished processing and
     taken effect before the response is sent.
 
     Messages following this one are unaffected and may be processed in
@@ -1404,13 +1404,13 @@ defined in the future.
     All messages following this one must not start processing until the
     response is sent.
 
-    Messages preceeding this one are unaffected and may be processed in
+    Messages preceding this one are unaffected and may be processed in
     any order the protocol permits, even being delayed until after the
     response is sent.
 
 **SyncNext**
     The message following this one must be executed in an atomic manner
-    so that anything preceeding the fence response **must not** be
+    so that anything preceding the fence response **must not** be
     affected by the message, and anything following the fence response
     **must** be affected by the message.
 
@@ -1816,10 +1816,10 @@ No. of bytes    Type                 [Value]    Description
 
 This header is then followed by arbitrary data whose format is
 determined by the *submessage-type*. Possible values for
-*submessage-type* and their associated psuedo encodings are
+*submessage-type* and their associated pseudo encodings are
 
 ================ ================ ====================
-Submessage Type  Psuedo Encoding  Description
+Submessage Type  Pseudo Encoding  Description
 ================ ================ ====================
 0                -258             Extended key events
 1                -259             Audio
@@ -1831,14 +1831,14 @@ QEMU Extended Key Event Message
 This submessage allows the client to send an extended key event
 containing a keycode, in addition to a keysym. The advantage of
 providing the keycode is that it enables the server to interpret
-the key event independantly of the clients' locale specific
+the key event independently of the clients' locale specific
 keymap. This can be important for virtual desktops whose key
 input device requires scancodes, for example, virtual machines
 emulating a PS/2 keycode. Prior to this extension, RFB servers
 for such virtualization software would have to be configured
 with a keymap matching the client. With this extension it is
 sufficient for the guest operating system to be configured with
-the matching keymap. The VNC server is keymap independant.
+the matching keymap. The VNC server is keymap independent.
 
 The full message is:
 
@@ -2226,10 +2226,10 @@ No. of bytes    Type                 [Value]    Description
 
 This header is then followed by arbitrary data whose format is
 determined by the *submessage-type*. Possible values for
-*submessage-type* and their associated psuedo encodings are
+*submessage-type* and their associated pseudo encodings are
 
 ================ ================ ====================
-Submessage Type  Psuedo Encoding  Description
+Submessage Type  Pseudo Encoding  Description
 ================ ================ ====================
 1                -259             Audio
 ================ ================ ====================
