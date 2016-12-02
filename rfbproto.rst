@@ -3214,7 +3214,7 @@ QEMU Pointer Motion Change Psuedo-encoding
 A client that supports this encoding declares that is able to send
 pointer motion events either as absolute coordinates, or relative
 deltas. The server can switch between different pointer motion modes
-by sending a `FrameBufferUpdate`_ message. If the *x-position* in
+by sending a rectangle with this encoding. If the *x-position* in
 the update is 1, the server is requesting absolute coordinates, which
 is the RFB protocol default when this encoding is not supported. If
 the *x-position* in the update is 0, the server is requesting relative
@@ -3252,22 +3252,19 @@ QEMU Extended Key Event Psuedo-encoding
 
 A client that supports this encoding is indicating that it is able
 to provide raw keycodes as an alternative to keysyms. If a server
-wishes to receive raw keycodes it will send a `FrameBufferUpdate`_
-with the matching psuedo-encoding and the *num-rectanges* field
-set to 1, however, no rectanges will actually be sent. After receiving
-this notification, clients may optionally use the
-`QEMU Extended Key Event Message`_ to send key events, in preference
-to the traditional `KeyEvent`_ message.
+wishes to receive raw keycodes it will send an empty pseudo-rectangle
+with the matching psuedo-encoding. After receiving this notification,
+clients may optionally use the `QEMU Extended Key Event Message`_ to
+send key events, in preference to the traditional `KeyEvent`_ message.
 
 QEMU Audio Psuedo-encoding
 --------------------------
 
 A client that supports this encoding is indicating that it is able
 to receive an audio data stream. If a server wishes to send audio
-data it will send a `FrameBufferUpdate`_ with the matching
-psuedo-encoding and the *num-rectangles* field set to 1, however, no
-rectangles will actually be sent. After receiving this notification,
-clients may optionally use the `QEMU Audio Client Message`_.
+data it will send an empty pseudo-rectangle with the matching
+pseudo-encoding. After receiving this notification, clients may
+optionally use the `QEMU Audio Client Message`_.
 
 LED State Pseudo-encoding
 -------------------------
