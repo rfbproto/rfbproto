@@ -2309,6 +2309,7 @@ Number       Name
 -257         `QEMU Pointer Motion Change Psuedo-encoding`_
 -258         `QEMU Extended Key Event Psuedo-encoding`_
 -259         `QEMU Audio Psuedo-encoding`_
+-261         `LED State Pseudo-encoding`_
 -305         `gii Pseudo-encoding`_
 -307         `DesktopName Pseudo-encoding`_
 -308         `ExtendedDesktopSize Pseudo-encoding`_
@@ -2341,7 +2342,8 @@ Number                      Name
 -225                        PointerPos
 -226 to -238                Tight options
 -241 to -246                Tight options
--260 to -272                QEMU
+-260                        Tight PNG
+-262 to -272                QEMU
 -273 to -304                VMWare
 -306                        popa
 -310                        OLIVE Call Control
@@ -3266,6 +3268,36 @@ data it will send a `FrameBufferUpdate`_ with the matching
 psuedo-encoding and the *num-rectangles* field set to 1, however, no
 rectangles will actually be sent. After receiving this notification,
 clients may optionally use the `QEMU Audio Client Message`_.
+
+LED State Pseudo-encoding
+-------------------------
+
+A client that supports this encoding is indicating that it can toggle
+the state of lock keys on the local keyboard. The server will send a
+pseudo-rectangle with the following contents when it wishes to update
+the client's state:
+
+=============== =================== ===================================
+No. of bytes    Type                Description
+=============== =================== ===================================
+1               ``U8``              *state*
+=============== =================== ===================================
+
+The bits of *state* are defined as:
+
+=============== =======================================================
+Bit             Description
+=============== =======================================================
+0               Scroll Lock
+1               Num Lock
+2               Caps Lock
+=============== =======================================================
+
+The remaining bits are reserved and must be ignored.
+
+An update must be sent whenever the server state changes, but may also
+be sent at other times to compensate for variance in behaviour between
+the server and client keyboard handling.
 
 gii Pseudo-encoding
 -------------------
