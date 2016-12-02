@@ -1292,7 +1292,7 @@ No. of bytes    Type                 [Value]    Description
 2               ``U16``                         *y-position*
 =============== ==================== ========== =======================
 
-The `QEMU Pointer Motion Change Psuedo-encoding`_ allows for the
+The `QEMU Pointer Motion Change Pseudo-encoding`_ allows for the
 negotiation of an alternative interpretation for the *x-position*
 and *y-position* fields, as relative deltas.
 
@@ -2235,7 +2235,7 @@ Submessage Type  Pseudo Encoding  Description
 ================ ================ ====================
 
 Submessage type 0 is unused, since the
-`QEMU Extended Key Event Psuedo-encoding`_ does not require any
+`QEMU Extended Key Event Pseudo-encoding`_ does not require any
 server messages.
 
 QEMU Audio Server Message
@@ -2306,9 +2306,9 @@ Number       Name
 -239         `Cursor Pseudo-encoding`_
 -240         `X Cursor Pseudo-encoding`_
 -247 to -256 `Compression Level Pseudo-encoding`_
--257         `QEMU Pointer Motion Change Psuedo-encoding`_
--258         `QEMU Extended Key Event Psuedo-encoding`_
--259         `QEMU Audio Psuedo-encoding`_
+-257         `QEMU Pointer Motion Change Pseudo-encoding`_
+-258         `QEMU Extended Key Event Pseudo-encoding`_
+-259         `QEMU Audio Pseudo-encoding`_
 -261         `LED State Pseudo-encoding`_
 -305         `gii Pseudo-encoding`_
 -307         `DesktopName Pseudo-encoding`_
@@ -3208,7 +3208,7 @@ levels should be used for any given bandwidth. The compression level is
 just a hint for the server, and there is no specification for what a
 specific compression level means.
 
-QEMU Pointer Motion Change Psuedo-encoding
+QEMU Pointer Motion Change Pseudo-encoding
 ------------------------------------------
 
 A client that supports this encoding declares that is able to send
@@ -3233,7 +3233,7 @@ If the client needs to send an updated *button-mask* without
 any associated motion, it should use the value 0x7FFF in the
 *x-position* and *y-position* fields of the `PointerEvent`_
 
-Servers are advised to implement this psuedo-encoding if the virtual
+Servers are advised to implement this pseudo-encoding if the virtual
 desktop is associated a input device that expects relative coordinates,
 for example, a virtual machine with a PS/2 mouse. Prior to this
 extension, a server with such a input device would have to perform the
@@ -3247,17 +3247,17 @@ back by 100 pixels. This ensures that continued movement of the
 user's input device will continue to generate relative deltas and
 thus avoid the "invisible wall" problem.
 
-QEMU Extended Key Event Psuedo-encoding
+QEMU Extended Key Event Pseudo-encoding
 ---------------------------------------
 
 A client that supports this encoding is indicating that it is able
 to provide raw keycodes as an alternative to keysyms. If a server
 wishes to receive raw keycodes it will send an empty pseudo-rectangle
-with the matching psuedo-encoding. After receiving this notification,
+with the matching pseudo-encoding. After receiving this notification,
 clients may optionally use the `QEMU Extended Key Event Message`_ to
 send key events, in preference to the traditional `KeyEvent`_ message.
 
-QEMU Audio Psuedo-encoding
+QEMU Audio Pseudo-encoding
 --------------------------
 
 A client that supports this encoding is indicating that it is able
