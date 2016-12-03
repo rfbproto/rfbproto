@@ -2340,7 +2340,8 @@ Number                      Name
 1024 to 1099                RealVNC
 1100 to 1105                Apple Inc.
 -1 to -22                   Tight options
--33 to -222                 Tight options
+-33 to -218                 Tight options
+-219 to -222                Historical libVNCServer use
 -225                        PointerPos
 -226 to -238                Tight options
 -241 to -246                Tight options
@@ -2355,6 +2356,11 @@ Number                      Name
 0x48323634                  VA H.264
 0x574d5600 to 0x574d56ff    VMWare
 0xc0a1e5cf                  PluginStreaming
+0xfffe0000                  KeyboardLedState
+0xfffe0001                  SupportedMessages
+0xfffe0002                  SupportedEncodings
+0xfffe0003                  ServerIdentity
+0xfffe0004 to 0xfffe00ff    libVNSServer
 0xffff0000                  Cache
 0xffff0001                  CacheEnable
 0xffff0002                  XOR zlib
