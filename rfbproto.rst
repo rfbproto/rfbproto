@@ -390,6 +390,8 @@ Number      Name
 20          SASL
 21          MD5 hash authentication
 22          xvp
+23          Secure Tunnel
+24          Integrated SSH
 30-35       Apple Inc.
 128-255     RealVNC
 =========== ===========================================================
@@ -2348,6 +2350,7 @@ Number                      Name
 -306                        popa
 -310                        OLIVE Call Control
 -311                        ClientRedirect
+-314                        CursorWithAlpha
 -523 to -528                Car Connectivity
 0x48323634                  VA H.264
 0x574d5600 to 0x574d56ff    VMWare
