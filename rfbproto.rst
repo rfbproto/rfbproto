@@ -3217,6 +3217,10 @@ levels should be used for any given bandwidth. The compression level is
 just a hint for the server, and there is no specification for what a
 specific compression level means.
 
+There are VNC server implementations that also use compression level
+as a hint to prefer or deprefer lossless compression mechanisms over
+JPEG-based ones.
+
 QEMU Pointer Motion Change Pseudo-encoding
 ------------------------------------------
 
