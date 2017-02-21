@@ -3094,14 +3094,15 @@ The pseudo-rectangle's *x-position* and *y-position* indicate the
 hotspot of the cursor, and *width* and *height* indicate the width and
 height of the cursor in pixels. 
 
-The data consists of the primary and secondary colours for the cursor,
-followed by one bitmap for the colour and one bitmask for the
-transparency. The bitmap and bitmask both consist of left-to-right,
-top-to-bottom scanlines, where each scanline is padded to a whole
-number of bytes floor((*width* + 7) / 8). Within each byte the most
-significant bit represents the leftmost pixel, with a 1-bit meaning the
-corresponding pixel should use the primary colour, or that the pixel is
-valid.
+If either *width* or *height* is zero then there is no data associated
+with the pseudo-rectangle. Otherwise the data consists of the primary
+and secondary colours for the cursor, followed by one bitmap for the
+colour and one bitmask for the transparency. The bitmap and bitmask
+both consist of left-to-right, top-to-bottom scanlines, where each
+scanline is padded to a whole number of bytes floor((*width* + 7) / 8).
+Within each byte the most significant bit represents the leftmost
+pixel, with a 1-bit meaning the corresponding pixel should use the
+primary colour, or that the pixel is valid.
 
 ====================================== ================ ===============
 No. of bytes                           Type             Description
