@@ -2318,6 +2318,7 @@ Number       Name
 -309         `xvp Pseudo-encoding`_
 -312         `Fence Pseudo-encoding`_
 -313         `ContinuousUpdates Pseudo-encoding`_
+-314         `Cursor With Alpha Pseudo-encoding`_
 -412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
 -763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
 0xc0a1e5ce   `Extended Clipboard Pseudo-encoding`_
@@ -2351,7 +2352,6 @@ Number                      Name
 -306                        popa
 -310                        OLIVE Call Control
 -311                        ClientRedirect
--314                        CursorWithAlpha
 -523 to -528                Car Connectivity
 0x48323634                  VA H.264
 0x574d5600 to 0x574d56ff    VMWare
@@ -3498,6 +3498,35 @@ extension. The server must send a `EndOfContinuousUpdates`_ message the
 first time it sees a ``SetEncodings`` message with the
 *ContinuousUpdates* pseudo-encoding, in order to inform the client that
 the extension is supported.
+
+Cursor With Alpha Pseudo-encoding
+---------------------------------
+
+A client which requests the *Cursor With Alpha* pseudo-encoding is
+declaring that it is capable of drawing a mouse cursor locally. This can
+significantly improve perceived performance over slow links. The server
+sets the cursor shape by sending a pseudo-rectangle with the *Cursor
+With Alpha* pseudo-encoding as part of an update. The
+pseudo-rectangle's *x-position* and *y-position* indicate the hotspot of
+the cursor, and *width* and *height* indicate the width and height of
+the cursor in pixels. The data consists of the following header:
+
+====================================== ================ ===============
+No. of bytes                           Type             Description
+====================================== ================ ===============
+4                                      ``S32``          *encoding*
+====================================== ================ ===============
+
+It is followed by *width* * *height* pixels values encoded according to
+*encoding*. The pixel format is always 32 bits with 8 bits for each
+channel in the order red, green, blue, alpha. Alpha is pre-multiplied
+for each colour channel.
+
+The server is free to use any encoding that the client has specified as
+supported. However some encodings may be unsuitable as they cannot
+include the extra bits that are used for alpha. Also note that the data
+used for the cursor shares state with other rects. E.g. the zlib stream
+for a ZRLE encoding is the same as for data rects.
 
 JPEG Fine-Grained Quality Level Pseudo-encoding
 -----------------------------------------------
