@@ -1875,6 +1875,7 @@ XT scancode   X11 keysym         RFB keycode  down-flag
 0xe0 0xcd     XK_Right (0xff53)  0xcd         0
 ============= ================== ============ ==========
 
+An unknown keycode or keysym should have the value 0.
 
 QEMU Audio Client Message
 ~~~~~~~~~~~~~~~~~~~~~~~~~
