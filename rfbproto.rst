@@ -1875,7 +1875,9 @@ XT scancode   X11 keysym         RFB keycode  down-flag
 0xe0 0xcd     XK_Right (0xff53)  0xcd         0
 ============= ================== ============ ==========
 
-An unknown keycode or keysym should have the value 0.
+An unknown keysym should have the value 0. The client must not send a
+QEMU Extended Key Event Message if the keycode isn't known. Instead a
+standard `KeyEvent`_ message should be used.
 
 QEMU Audio Client Message
 ~~~~~~~~~~~~~~~~~~~~~~~~~
