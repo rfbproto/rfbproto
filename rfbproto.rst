@@ -472,7 +472,17 @@ No. of bytes    Type    Description
 =============== ======= ===============================================
 
 The client encrypts the challenge with DES, using a password supplied
-by the user as the key, and sends the resulting 16-byte response:
+by the user as the key. A password longer than the 64 bits required by
+DES is simply truncated. If the password is shorter than required then
+the key shall be padded with zeroes.
+
+Note: The lowest bit of each byte is considered the first bit and the
+highest discarded as parity. This is the reserve order of most
+implementations of DES so the key may require adjustment to give the
+expected result.
+
+Each 8 bytes of the challenge is encrypted independently (i.e. ECB
+mode) and sent back to the server:
 
 =============== ======= ===============================================
 No. of bytes    Type    Description
