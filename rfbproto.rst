@@ -477,7 +477,7 @@ DES is simply truncated. If the password is shorter than required then
 the key shall be padded with zeroes.
 
 Note: The lowest bit of each byte is considered the first bit and the
-highest discarded as parity. This is the reserve order of most
+highest discarded as parity. This is the reverse order of most
 implementations of DES so the key may require adjustment to give the
 expected result.
 
