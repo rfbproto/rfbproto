@@ -598,7 +598,7 @@ Code    Vendor      Signature       Description
 ======= =========== =============== ===================================
 1       "``STDV``"  "``NOAUTH__``"  `None`_
 2       "``STDV``"  "``VNCAUTH_``"  `VNC Authentication`_
-19      "``VENC``"  "``VENCRYPT``"  VeNCrypt Security
+19      "``VENC``"  "``VENCRYPT``"  `VeNCrypt`_
 20      "``GTKV``"  "``SASL____``"  Simple Authentication and Security
                                     Layer (SASL)
 129     "``TGHT``"  "``ULGNAUTH``"  Unix Login Authentication
@@ -927,7 +927,7 @@ Code    Vendor      Signature       Description
 131     "``TGHT``"  "``FTS_DNDT``"  File Download Data
 132     "``TGHT``"  "``FTS_UPCN``"  File Upload Cancel
 133     "``TGHT``"  "``FTS_DNFL``"  File Download Failed
-150     "``TGHT``"  "``CUS_EOCU``"  End Of Continuous Updates
+150     "``TGHT``"  "``CUS_EOCU``"  `EndOfContinuousUpdates`_
 253     "``GGI_``"  "``GII_SERV``"  `gii Server Message`_
 ======= =========== =============== ===================================
 
@@ -943,7 +943,7 @@ Code    Vendor      Signature       Description
 134     "``TGHT``"  "``FTC_DNCN``"  File Download Cancel
 135     "``TGHT``"  "``FTC_UPFL``"  File Upload Failed
 136     "``TGHT``"  "``FTC_FCDR``"  File Create Directory Request
-150     "``TGHT``"  "``CUC_ENCU``"  Enable/Disable Continuous Updates
+150     "``TGHT``"  "``CUC_ENCU``"  `EnableContinuousUpdates`_
 151     "``TGHT``"  "``VRECTSEL``"  Video Rectangle Selection
 253     "``GGI_``"  "``GII_CLNT``"  `gii Client Message`_
 ======= =========== =============== ===================================
