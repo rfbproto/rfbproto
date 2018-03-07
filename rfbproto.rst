@@ -1885,6 +1885,14 @@ XT scancode   X11 keysym         RFB keycode  down-flag
 0xe0 0xcd     XK_Right (0xff53)  0xcd         0
 ============= ================== ============ ==========
 
+The multi-byte scancode sequence for the Print/SysRq key SHOULD be sent
+as 0x54, regardless of what modifier keys are currently pressed. For
+backwards compatibility servers SHOULD also accept 0xb7 as a synonym
+for 0x54.
+
+The multi-byte scancode sequence for the Pause/Break key MUST be sent
+as 0xc6, regardless of what modifier keys are currently pressed.
+
 An unknown keysym should have the value 0. The client must not send a
 QEMU Extended Key Event Message if the keycode isn't known. Instead a
 standard `KeyEvent`_ message should be used.
