@@ -3244,6 +3244,10 @@ as the tradeoff between CPU time and bandwidth is obvious there.
 However it can also be used for other algorithms where this tradeoff is
 relevant.
 
+There are VNC server implementations that also use compression level
+as a hint to prefer or deprefer lossless compression mechanisms over
+JPEG-based ones.
+
 QEMU Pointer Motion Change Pseudo-encoding
 ------------------------------------------
 
