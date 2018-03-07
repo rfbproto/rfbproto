@@ -3232,12 +3232,17 @@ compression level can be useful to get low latency in medium to high
 bandwidth situations and high compression level can be useful in low
 bandwidth situations.
 
-The compression level concerns lossless compression, and hence the
-setting is a tradoff between CPU time and bandwidth. It is therefore
-probably difficult to define exact cut-off points for which compression
-levels should be used for any given bandwidth. The compression level is
-just a hint for the server, and there is no specification for what a
-specific compression level means.
+The compression level concerns the general tradeoff between CPU time
+and bandwidth. It is therefore probably difficult to define exact
+cut-off points for which compression levels should be used for any
+given bandwidth. The compression level is just a hint for the server,
+and there is no specification for what a specific compression level
+means.
+
+Most servers use this hint to control lossless compression algorithms
+as the tradeoff between CPU time and bandwidth is obvious there.
+However it can also be used for other algorithms where this tradeoff is
+relevant.
 
 QEMU Pointer Motion Change Pseudo-encoding
 ------------------------------------------
