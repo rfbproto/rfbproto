@@ -1016,7 +1016,7 @@ Number      Name
 20          RequestSession
 21          SetSession
 80          NotifyPluginStreaming
-127         VMWare
+127         VMware
 128         Car Connectivity
 150         `EnableContinuousUpdates`_
 248         `ClientFence`_
@@ -1025,7 +1025,7 @@ Number      Name
 251         `SetDesktopSize`_
 252         tight
 253         `gii Client Message`_
-254         VMWare
+254         VMware
 255         `QEMU Client Message`_
 =========== ===========================================================
 
@@ -1995,7 +1995,7 @@ Number      Name
 13          KeepAlive
 14          Possibly used in UltraVNC
 15          ResizeFrameBuffer
-127         VMWare
+127         VMware
 128         Car Connectivity
 150         `EndOfContinuousUpdates`_
 173         ServerState
@@ -2004,7 +2004,7 @@ Number      Name
 250         `xvp Server Message`_
 252         tight
 253         `gii Server Message`_
-254         VMWare
+254         VMware
 255         `QEMU Server Message`_
 =========== ===========================================================
 
@@ -2342,6 +2342,13 @@ Number       Name
 -314         `Cursor With Alpha Pseudo-encoding`_
 -412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
 -763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
+0x574d5664   `VMware Cursor Pseudo-encoding`_
+0x574d5665   `VMware Cursor State Pseudo-encoding`_
+0x574d5666   `VMware Cursor Position Pseudo-encoding`_
+0x574d5667   `VMware Key Repeat Pseudo-encoding`_
+0x574d5668   `VMware LED state Pseudo-encoding`_
+0x574d5669   `VMware Display Mode Change Pseudo-encoding`_
+0x574d566a   `VMware Virtual Machine State Pseudo-encoding`_
 0xc0a1e5ce   `Extended Clipboard Pseudo-encoding`_
 ============ ==========================================================
 
@@ -2369,13 +2376,13 @@ Number                      Name
 -241 to -246                Tight options
 -260                        Tight PNG
 -262 to -272                QEMU
--273 to -304                VMWare
+-273 to -304                VMware
 -306                        popa
 -310                        OLIVE Call Control
 -311                        ClientRedirect
 -523 to -528                Car Connectivity
 0x48323634                  VA H.264
-0x574d5600 to 0x574d56ff    VMWare
+0x574d5600 to 0x574d56ff    VMware
 0xc0a1e5cf                  PluginStreaming
 0xfffe0000                  KeyboardLedState
 0xfffe0001                  SupportedMessages
@@ -3606,6 +3613,205 @@ The values for this pseudo-encoding are defined as follows:
 
 This pseudo-encoding was originally intended for use with JPEG-encoded
 subrectangles, but it could be used with other types of image encoding as well.
+
+VMware Cursor Pseudo-encoding
+-----------------------------
+
+A server sets the cursor shape by sending a pseudo-rectangle with the
+VMware Cursor pseudo-encoding as part of an update. The
+pseudo-rectangle's *x-position* and *y-position* indicate the hotspot
+of the cursor, and *width* and *height* indicate the width and height
+of the cursor in pixels.
+
+The data starts with a *cursor-type*  byte followed by padding:
+
+=============== ==================== =======================
+No. of bytes    Type                 Description
+=============== ==================== =======================
+1               ``U8``               *cursor-type*
+1               ``U8``               padding
+=============== ==================== =======================
+
+The value of *cursor-type* is either 0 to indicate a 'classic' cursor
+which consists of an AND mask and a XOR mask, or 1 indicate an alpha
+cursor.
+
+The data for a classic cursor consists two sets of *width* * *height*
+pixel values, defining an AND mask and a XOR mask:
+
+======================================= =================== =============
+No. of bytes                            Type                Description
+======================================= =================== =============
+*width* * *height* * *bytesPerPixel*    ``PIXEL`` array     *and-mask*
+*width* * *height* * *bytesPerPixel*    ``PIXEL`` array     *xor-mask*
+======================================= =================== =============
+
+Classic cursors can be drawn using the following code:
+
+::
+
+  dst[i] = (dst[i] & and-mask[i]) ^ xor-mask[i];
+
+The data for an alpha cursor consists of *width* * *height* RGBA pixel
+values:
+
+======================================= =================== ==============
+No. of bytes                            Type                Description
+======================================= =================== ==============
+*width* * *height* * 4                  ``U8`` array        *cursor bytes*
+======================================= =================== ==============
+
+Alpha cursors should be drawn by compositing the cursor image into the
+framebuffer.
+
+VMware Cursor State Pseudo-encoding
+-----------------------------------
+
+A server sets the cursor state by sending a pseudo-rectangle with the
+VMware Cursor State pseudo-encoding as part of an update.
+
+=============== ==================== =======================
+No. of bytes    Type                 Description
+=============== ==================== =======================
+2               ``U16``              *cursor-state*
+=============== ==================== =======================
+
+*cursor-state* is a bit-field which describes the state of the cursor:
+
+=============== =======================================================
+Bit             Description
+=============== =======================================================
+0               Cursor visible.
+1               Cursor absolute.
+2               Cursor wrap. 
+=============== =======================================================
+
+If cursor visible is not set, the cursor should not be rendered into
+the framebuffer until another cursor state message is received that
+turns the cursor back on.
+
+The cursor absolute bit indicates whether the virtual machine is using
+an absolute or relative mouse.
+
+The cursor warp bit is set when the virtual machine artificially moves
+the position of the cursor. This value is for information purposes
+only.
+
+VMware Cursor Position Pseudo-encoding
+--------------------------------------
+
+A server updates the cursor position by sending a pseudo-rectangle with
+the VMware Cursor Position pseudo-encoding. The *x-position* and
+*y-position* define the new position of the cursor hot spot (not the
+the top left corner of cursor image).
+
+VMware Key Repeat Pseudo-encoding
+---------------------------------
+
+The server notifies the client of changes to the keyboard key repeat by
+sending a pseudo-rectangle with the VMware Key Repeat
+pseudo-encoding. It is used to determine whether the client or server
+should handle the key repeat.
+
+=============== ==================== =======================
+No. of bytes    Type                 Description
+=============== ==================== =======================
+2               ``U16``              *key-repeat-enabled*
+4               ``U32``              *period*
+4               ``U32``              *delay*
+=============== ==================== =======================
+
+*key-repeat-enabled* is 1 if the VNC client should handle key
+repeat, 0 if the server handles key repeat.
+*period* defines the period to wait between key repeats.
+*delay* defines the delay for the first key repeat.
+
+VMware LED State Pseudo-encoding
+---------------------------------
+
+The server sends a pseudo-rectangle with the VMware LED State
+pseudo-encoding to toggle the state of lock keys on the keyboard.
+
+This pseudo-rectangle has the following contents:
+
+=============== ==================== =======================
+No. of bytes    Type                 Description
+=============== ==================== =======================
+4               ``U32``              *led-flags*
+=============== ==================== =======================
+
+*led-flags*  is a bitmask which defines whether a keyboard LED is on or
+off.
+
+=============== =======================================================
+Bit             Description
+=============== =======================================================
+0               Scroll Lock
+1               Num Lock
+2               Caps Lock
+=============== =======================================================
+
+The remaining bits are reserved and must be ignored.
+
+VMware Display Mode Change Pseudo-encoding
+------------------------------------------
+
+The server changes the desktop size by sending a pseudo-rectangle with
+the VMware Display Mode Change pseudo-encoding.
+
+This encoding is used for scenarios not addressed by the
+`DesktopSize Pseudo-encoding`_.
+
+Specifically, the `DesktopSize Pseudo-encoding`_ does not allow the VNC
+server to redefine both the color depth and size of the framebuffer.
+This is useful when the client prefers to receive the framebuffer
+native color depth at all times. It is defined to be similar to the
+ServerInitialisation header to facilitate client implementations.
+
+The new pixel format takes effect immediately after the server sends
+a pseudo-rectangle with the VMware Display Mode Change pseudo-encoding.
+
+The *width*  and *height* of the pseudo-rectangle specify the new width
+and height of the display. The rest of the format is described below:
+
+=============== ==================== =======================
+No. of bytes    Type                 Description
+=============== ==================== =======================
+1               ``U8``               *bits-per-sample*
+1               ``U8``               *depth*
+1               ``U8``               *color*
+1               ``U8``               *true-color*
+2               ``U16``              *max-red*
+2               ``U16``              *max-green*
+2               ``U16``              *max-blue*
+1               ``U8``               *red-shift*
+1               ``U8``               *green-shift*
+1               ``U8``               *blue-shift*
+3                                    padding
+=============== ==================== =======================
+
+VMware Virtual Machine State Pseudo-encoding
+--------------------------------------------
+
+The server sends a pseudo-rectangle with the VMware Virtual Machine
+State pseudo-encoding to notify the client of changes in the Virtual
+Machine state.
+
+=============== ==================== =======================
+No. of bytes    Type                 Description
+=============== ==================== =======================
+2               ``U16``              *vm-state-flags*
+=============== ==================== =======================
+
+*vm-state-flags* is a bitmask field. These flags describe the virtual
+machine state.
+
+=============== =======================================================
+Bit             Description
+=============== =======================================================
+0               A end-user sitting at a local virtual machine console has entered fullscreen mode.
+1               A end-user sitting at a local virtual machine console has temporarily disabled VNC updates.
+=============== =======================================================
 
 Extended Clipboard Pseudo-Encoding
 ----------------------------------
