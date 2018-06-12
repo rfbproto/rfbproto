@@ -2323,6 +2323,14 @@ Number       Name
 7            `Tight Encoding`_
 8            `zlibhex Encoding`_
 16           `ZRLE Encoding`_
+-260         `Tight PNG Encoding`_
+============ ==========================================================
+
+The pseudo-encodings defined in this document are:
+
+============ ==========================================================
+Number       Name
+============ ==========================================================
 -23 to -32   `JPEG Quality Level Pseudo-encoding`_
 -223         `DesktopSize Pseudo-encoding`_
 -224         `LastRect Pseudo-encoding`_
@@ -2367,7 +2375,6 @@ Number                      Name
 -225                        PointerPos
 -226 to -238                Tight options
 -241 to -246                Tight options
--260                        Tight PNG
 -262 to -272                QEMU
 -273 to -304                VMWare
 -306                        popa
@@ -3059,6 +3066,45 @@ are:
     =================== =============== ======= =======================
 
     Where *r* is floor((*runLength* - 1) / 255).
+
+Tight PNG Encoding
+-------------------------
+
+The Tight PNG encoding is a variant of the Tight encoding that
+disallows the **BasicCompression** type and replaces it with a new
+**PngCompression** type. The purpose of this encoding is to support
+clients which have efficient PNG decoding/rendering (perhaps even in
+hardware) but may have inefficient decoding of the raw zlib data
+contained in the **BasicCompression** type.
+
+The Tight PNG encoding is identical to the Tight encoding except that
+bit 7-4 of the *compression-control* byte indicate either
+**FillCompression**, **JpegCompression**, or **PngCompression** and
+are interpreted as follows:
+
+=============== =================== ===================================
+Bits            Binary value        Description
+=============== =================== ===================================
+7-4             1000                **FillCompression**
+..              1001                **JpegCompression**
+..              1010                **PngCompression**
+..              any other           Invalid
+=============== =================== ===================================
+
+**FillCompression**
+    Identical to Tight encoding.
+
+**JpegCompression**
+    Identical to Tight encoding. As with the Tight encoding,
+    **JpegCompression** may only be used when *bits-per-pixel* is
+    either 16 or 32 and the client has advertized a quality level
+    using the `JPEG Quality Level Pseudo-encoding`_
+
+**PngCompression**
+    If the compression type is **PngCompression**, the data stream is
+    the same as **JpegCompression** (as defined in the Tight encoding)
+    except that the *jpeg-data* is replaced by *png-data* which is
+    image data in the PNG (Portable Network Graphics) format.
 
 Pseudo-encodings
 ++++++++++++++++
