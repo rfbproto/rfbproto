@@ -374,6 +374,7 @@ Number      Name
 2           `VNC Authentication`_
 16          `Tight Security Type`_
 19          `VeNCrypt`_
+107         `UltraVNC Single Click Prompt`_
 =========== ===========================================================
 
 Other registered security types are:
@@ -419,6 +420,7 @@ handshaking was successful.
 No. of bytes    Type    [Value]     Description
 =============== ======= =========== ===================================
 4               ``U32``             status:
+..                      -1          restart
 ..                      0           OK
 ..                      1           failed
 ..                      2           failed, too many attempts [#]_
@@ -783,6 +785,28 @@ Authentication continues with the SASL method when TLS handshake is completed.
 ..
   XXX: Correct link to the SASL method when it gets accepted.
 
+UltraVNC Single Click Prompt
+----------------------------
+
+UltraVNC SC Prompt authentication is to be used and protocol data is to be sent
+unencrypted. The server sends a computer information:
+
+========================== ============= ==========================
+No. of bytes               Type          Description
+========================== ============= ==========================
+4                          ``U32``       *prompt-length*
+*prompt-length*            ``U8`` array  *prompt-string*
+========================== ============= ==========================
+
+The client sends a non-zero value to accept.
+
+=============== ======= ===============================================
+No. of bytes    Type    Description
+=============== ======= ===============================================
+4               ``U32``  *response*
+=============== ======= ===============================================
+
+The protocol continues with the *SecurityResult* message.
 
 Initialisation Messages
 +++++++++++++++++++++++
