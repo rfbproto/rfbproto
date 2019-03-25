@@ -1335,8 +1335,10 @@ This message informs the server to switch between only sending
 `FramebufferUpdateRequest`_ message, or sending ``FramebufferUpdate``
 messages continuously.
 
-Note that there is currently no way to determine if the server supports
-this message except for using the `Tight Security Type`_ authentication.
+The client must establish that the server supports this message before
+sending it. The client can do so using either the
+`Tight Security Type`_ authentication, or using the
+`ContinuousUpdates Pseudo-encoding`_.
 
 =============== ==================== ========== =======================
 No. of bytes    Type                 [Value]    Description
