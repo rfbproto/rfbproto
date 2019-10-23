@@ -601,7 +601,7 @@ Code    Vendor      Signature       Description
 19      "``VENC``"  "``VENCRYPT``"  `VeNCrypt`_
 20      "``GTKV``"  "``SASL____``"  Simple Authentication and Security
                                     Layer (SASL)
-129     "``TGHT``"  "``ULGNAUTH``"  Unix Login Authentication
+129     "``TGHT``"  "``ULGNAUTH``"  `Tight Unix Login Authentication`_
 130     "``TGHT``"  "``XTRNAUTH``"  External Authentication
 ======= =========== =============== ===================================
 
@@ -623,6 +623,28 @@ at security type `None`_.
 
 Note that the `ServerInit`_ message is extended when the Tight security
 type has been activated.
+
+Tight Unix Login Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Tight Unix Login Authentication is to be used and the client sends a username
+and password in the following form:
+
+================= ============= =========================================
+No. of bytes      Type          Description
+================= ============= =========================================
+4                 ``U32``       *username-length*
+4                 ``U32``       *password-length*
+*username-length* ``U8`` array  *username*
+*password-length* ``U8`` array  *password*
+================= ============= =========================================
+
+The text encoding used for username and password are historically undefined
+but it is strongly recommended to use UTF-8 (see `String Encodings`_ for
+more details).
+
+After receiving the credentials, the server verifies if they are correct and
+continues with the `SecurityResult`_ message.
 
 VeNCrypt
 --------
