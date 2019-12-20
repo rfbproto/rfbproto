@@ -3304,7 +3304,7 @@ Compression Level Pseudo-encoding
 ---------------------------------
 
 Specifies the desired compression level. Encoding number -247 implies
-high compression level, -255 implies low compression level. Low
+high compression level, -256 implies low compression level. Low
 compression level can be useful to get low latency in medium to high
 bandwidth situations and high compression level can be useful in low
 bandwidth situations.
