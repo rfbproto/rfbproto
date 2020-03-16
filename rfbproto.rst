@@ -706,6 +706,9 @@ Code            Name            Description
 262             X509Plain       X509 encryption with Plain authentication
 263             TLSSASL         TLS encryption with SASL authentication
 264             X509SASL        X509 encryption with SASL authentication
+265             Ident           Ident authentication
+266             TLSIdent        TLS encryption with Ident authentication
+267             X509Ident       X509 encryption with Ident authentication
 =============== =============== =======================================
 
 In addition, any of the normal VNC security types (except VeNCrypt) may
@@ -791,10 +794,31 @@ No. of bytes      Type          Description
 After that server verifies if supplied credentials are correct and
 continues with the `SecurityResult`_ message.
 
+Ident subtype
+~~~~~~~~~~~~~
+
+Client sends the username in the following form:
+
+=============== ============= =========================================
+No. of bytes    Type          Description
+=============== ============= =========================================
+4               ``U32``       Username length
+Username length ``U8`` array  Username
+=============== ============= =========================================
+
+After that server verifies if supplied credentials are correct and
+continues with the `SecurityResult`_ message.
+
 Subtypes with Plain suffix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Authentication continues with the `Plain subtype`_ method when TLS handshake
+is completed.
+
+Subtypes with Ident suffix
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Authentication continues with the `Ident subtype`_ method when TLS handshake
 is completed.
 
 Subtypes with SASL suffix
