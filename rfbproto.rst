@@ -1290,9 +1290,9 @@ used:
 - On a viewer where modifiers like Control and Alt can also be used to
   generate character-based keysyms, the viewer may need to send extra
   "release" events in order that the keysym is interpreted correctly.
-  For example, on a German PC keyboard, ctrl-alt-q generates the '@'
-  character. In this case, the viewer needs to send "fake" release
-  events for Control and Alt in order that the '@' character is
+  For example, on a German PC keyboard on Windows, ctrl-alt-q generates
+  the '@' character. In this case, the viewer needs to send "fake"
+  release events for Control and Alt in order that the '@' character is
   interpreted correctly (ctrl-alt-@ is likely to mean something
   completely different to the server).
 
