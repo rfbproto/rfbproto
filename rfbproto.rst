@@ -1276,7 +1276,10 @@ used:
 
 - Servers should ignore "lock" keysyms such as CapsLock and NumLock
   where possible. Instead they should interpret each character-based
-  keysym according to its case.
+  keysym according to its case. Note that some applications directly
+  examine the state of CapsLock and NumLock and an extension such as
+  `LED State Pseudo-encoding`_ or `VMware LED State Pseudo-encoding`_
+  could be needed for correct behaviour.
 
 - Unlike Shift, the state of modifier keys such as Control and Alt
   should be taken as modifying the interpretation of other keysyms.
@@ -1302,6 +1305,10 @@ used:
   than ISO Left Tab. However, to be backwards-compatible with existing
   viewers, servers should also recognise ISO Left Tab as meaning a
   shifted Tab.
+
+Note that extensions such as `QEMU Extended Key Event Message`_ provide
+alternative behaviours for keyboard events that do not follow what is
+described here.
 
 PointerEvent
 ------------
