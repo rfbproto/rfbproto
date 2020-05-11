@@ -1383,7 +1383,7 @@ No. of bytes    Type                 [Value]    Description
 If *enable-flag* is non-zero, then the server can start sending
 ``FramebufferUpdate`` messages as needed for the area specified by
 *x-position*, *y-position*, *width*, and *height*. If continuous
-updates are already active, then they must remain active active and the
+updates are already active, then they must remain active and the
 coordinates must be replaced with the last message seen.
 
 If *enable-flag* is zero, then the server must only send
@@ -3653,11 +3653,11 @@ JPEG Subsampling Level Pseudo-Encoding
 The JPEG Subsampling Level pseudo-encoding allows the level of chrominance
 subsampling to be specified.  When a JPEG image is encoded, the RGB pixels are
 first converted to YCbCr, a colorspace in which brightness (luminance) is
-separated from color (chrominance.)  Since the human eye is more sensitive to
+separated from color (chrominance). Since the human eye is more sensitive to
 spatial changes in brightness than to spatial changes in color, the chrominance
 components (Cb, Cr) can be subsampled to save bandwidth without losing much
 image quality (on smooth images, such as photographs, chrominance subsampling
-is often not distinguishable by the human eye.)  Subsampling can be implemented
+is often not distinguishable by the human eye). Subsampling can be implemented
 either by averaging together groups of chrominance components or by simply
 picking one component from the group and discarding the rest.
 
