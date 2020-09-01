@@ -1515,7 +1515,9 @@ SetDesktopSize
 
 Requests a change of desktop size. This message is an extension and
 may only be sent if the client has previously received an
-*ExtendedDesktopSize* rectangle.
+*ExtendedDesktopSize* rectangle. This message also enables clients
+to handle configuration of a multi head screen layout within the
+framebuffer extents, as described in `Screen Model`_.
 
 The server must send an *ExtendedDesktopSize* rectangle for every
 *SetDesktopSize* message received. Several rectangles may be
@@ -3552,7 +3554,9 @@ No. of bytes                Type                Description
 
 The *number-of-screens* field indicates the number of active screens
 and allows for multi head configurations. It also indicates how many
-``SCREEN`` structures that follows. These are defined as:
+``SCREEN`` structures follow, which define the position and dimensions
+of heads within the framebuffer extents. The semantics of screens are
+defined in `Screen Model`_. The ``SCREEN`` structures are defined as:
 
 =============== =============================== =======================
 No. of bytes    Type                            Description
@@ -3578,7 +3582,8 @@ bits must be set to zero.
 
 Note that a simple client which does not support multi head does not
 need to parse the list of screens and can simply display the entire
-framebuffer.
+framebuffer whose extents were given by the *width* and *height*
+field of the ``FramebufferUpdate`` message.
 
 xvp Pseudo-encoding
 -------------------
