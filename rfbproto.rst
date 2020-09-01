@@ -1278,7 +1278,7 @@ used:
   where possible. Instead they should interpret each character-based
   keysym according to its case. Note that some applications directly
   examine the state of CapsLock and NumLock and an extension such as
-  `LED State Pseudo-encoding`_ or `VMware LED State Pseudo-encoding`_
+  `QEMU LED State Pseudo-encoding`_ or `VMware LED State Pseudo-encoding`_
   could be needed for correct behaviour.
 
 - Unlike Shift, the state of modifier keys such as Control and Alt
@@ -2371,7 +2371,7 @@ Number       Name
 -257         `QEMU Pointer Motion Change Pseudo-encoding`_
 -258         `QEMU Extended Key Event Pseudo-encoding`_
 -259         `QEMU Audio Pseudo-encoding`_
--261         `LED State Pseudo-encoding`_
+-261         `QEMU LED State Pseudo-encoding`_
 -305         `gii Pseudo-encoding`_
 -307         `DesktopName Pseudo-encoding`_
 -308         `ExtendedDesktopSize Pseudo-encoding`_
@@ -3386,8 +3386,8 @@ data it will send an empty pseudo-rectangle with the matching
 pseudo-encoding. After receiving this notification, clients may
 optionally use the `QEMU Audio Client Message`_.
 
-LED State Pseudo-encoding
--------------------------
+QEMU LED State Pseudo-encoding
+------------------------------
 
 A client that supports this encoding is indicating that it can toggle
 the state of lock keys on the local keyboard. The server will send a
