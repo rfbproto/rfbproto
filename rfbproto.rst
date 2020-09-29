@@ -807,7 +807,12 @@ Username length ``U8`` array  Username
 =============== ============= =========================================
 
 After that server verifies if supplied credentials are correct and
-continues with the `SecurityResult`_ message.
+continues with the `SecurityResult`_ message. No real authentication
+is performed or intended by this subtype, rather it is intended
+to be used as part of an authentication scheme where the user is
+identified by name and subsequently redirected (via ClientRedirect
+message) to a new or existing session where traditional authentication
+will take place.
 
 Subtypes with Plain suffix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
