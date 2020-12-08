@@ -3533,11 +3533,23 @@ Code    Description
 1       Resize is administratively prohibited
 2       Out of resources
 3       Invalid screen layout
+4       Request forwarded (might complete asyncronously)
 ======= ===============================================================
 
 This field shall be set to zero by the server and ignored by clients
 when not defined. Other error codes may be added in the future and
 clients must treat them as an unknown failure.
+
+The "Request forwarded" error code is used when the server is not in
+direct control of the screen layout and is unable to determine if the
+request will succeed or not.  An example for this situation is a
+virtual machine monitor like qemu which can only forward the request
+to the guest, but it is in the hands of the guest to actually respond
+to the request.  In case the request succeeds the server will send
+another *ExtendedDesktopSize* message.  Note that there can be a
+longer delay and even continuous screen updates before the request
+succeeds, for example in case the request comes in while the guest is
+booting.
 
 The *width* and *height* indicates the new width and height of the
 framebuffer.
