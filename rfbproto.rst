@@ -446,8 +446,10 @@ Version 3.3 and 3.7
 Security Types
 ++++++++++++++
 
-None
-----
+.. _none:
+
+None (1)
+--------
 
 No authentication is needed and protocol data is to be sent
 unencrypted.
@@ -459,8 +461,11 @@ Version 3.3 and 3.7
     The protocol passes to the initialisation phase
     (`Initialisation Messages`_).
 
-VNC Authentication
-------------------
+
+.. _vnc_authentication:
+
+VNC Authentication (2)
+----------------------
 
 VNC authentication is to be used and protocol data is to be sent
 unencrypted. The server sends a random 16-byte challenge:
@@ -492,8 +497,11 @@ No. of bytes    Type    Description
 
 The protocol continues with the *SecurityResult* message.
 
-Tight Security Type
--------------------
+
+.. _tight_security_type:
+
+Tight Security Type (16)
+------------------------
 
 The Tight security type is a generic protocol extension that allows for
 three things:
@@ -646,8 +654,11 @@ more details).
 After receiving the credentials, the server verifies if they are correct and
 continues with the `SecurityResult`_ message.
 
-VeNCrypt
---------
+
+.. _vencrypt:
+
+VeNCrypt (19)
+-------------
 
 The VeNCrypt security type is a generic authentication method which
 encapsulates multiple authentication subtypes.
@@ -1058,8 +1069,8 @@ client must have determined that the server supports the relevant
 extension by receiving some extension-specific confirmation from the
 server.
 
-SetPixelFormat
---------------
+SetPixelFormat (0)
+------------------
 
 Sets the format in which pixel values should be sent in
 *FramebufferUpdate* messages. If the client does not send a
@@ -1104,8 +1115,8 @@ No. of bytes    Type                Description
 3                                   *padding*
 =============== =================== ===================================
 
-SetEncodings
-------------
+SetEncodings (2)
+----------------
 
 Sets the encoding types in which pixel data can be sent by the server.
 The order of the encoding types given in this message is a hint by the
@@ -1140,8 +1151,8 @@ No. of bytes    Type                            Description
 4               ``S32``                         *encoding-type*
 =============== =============================== =======================
 
-FramebufferUpdateRequest
-------------------------
+FramebufferUpdateRequest (3)
+----------------------------
 
 Notifies the server that the client is interested in the area of the
 framebuffer specified by *x-position*, *y-position*, *width* and
@@ -1189,8 +1200,8 @@ must be cropped so that it fits within the framebuffer dimensions.
 Note that an empty area can still solicit a *FramebufferUpdate* even
 though that update will only contain pseudo-encodings.
 
-KeyEvent
---------
+KeyEvent (4)
+------------
 
 A key press or release. *Down-flag* is non-zero (true) if the key is
 now pressed, zero (false) if it is now released. The key itself is
@@ -1310,8 +1321,8 @@ Note that extensions such as `QEMU Extended Key Event Message`_ provide
 alternative behaviours for keyboard events that do not follow what is
 described here.
 
-PointerEvent
-------------
+PointerEvent (5)
+----------------
 
 Indicates either pointer movement or a pointer button press or release.
 The pointer is now at (*x-position*, *y-position*), and the current
@@ -1337,8 +1348,8 @@ The `QEMU Pointer Motion Change Pseudo-encoding`_ allows for the
 negotiation of an alternative interpretation for the *x-position*
 and *y-position* fields, as relative deltas.
 
-ClientCutText
--------------
+ClientCutText (6)
+-----------------
 
 The client has new ISO 8859-1 (Latin-1) text in its cut buffer. Ends of
 lines are represented by the linefeed / newline character (value 10)
@@ -1356,8 +1367,8 @@ No. of bytes    Type                 [Value]    Description
 See also `Extended Clipboard Pseudo-Encoding`_ which modifies the
 behaviour of this message.
 
-EnableContinuousUpdates
------------------------
+EnableContinuousUpdates (150)
+-----------------------------
 
 This message informs the server to switch between only sending
 `FramebufferUpdate`_ messages as a result of a 
@@ -1398,8 +1409,8 @@ long as continuous updates are active. Non-incremental update requests
 must however be honored, even if the area in such a request does not
 overlap the area specified for continuous updates.
 
-ClientFence
------------
+ClientFence (248)
+-----------------
 
 A client supporting the *Fence* extension sends this to request a
 synchronisation of the data stream.
@@ -1489,8 +1500,8 @@ responses and to avoid keeping state. This data is specified using
 order to minimise the disturbance to highly parallel clients and
 servers.
 
-xvp Client Message
-------------------
+xvp Client Message (250)
+------------------------
 
 A client supporting the *xvp* extension sends this to request that the
 server initiate a clean shutdown, clean reboot or abrupt reset of the
@@ -1510,8 +1521,8 @@ The possible values for *xvp-message-code* are: 2 - XVP_SHUTDOWN,
 established that the server supports this extension, by requesting the
 `xvp Pseudo-encoding`_.
 
-SetDesktopSize
---------------
+SetDesktopSize (251)
+--------------------
 
 Requests a change of desktop size. This message is an extension and
 may only be sent if the client has previously received an
@@ -1578,8 +1589,8 @@ difference between a moved screen and a newly created one. The client
 should make every effort to preserve the fields it does not wish to
 modify, including any unknown *flags* bits.
 
-gii Client Message
-------------------
+gii Client Message (253)
+------------------------
 
 This message is an extension and may only be sent if the client has
 previously received a `gii Server Message`_ confirming that the server
@@ -1844,8 +1855,8 @@ request.
 
 The event reports *count* valuators starting with *first*.
 
-QEMU Client Message
--------------------
+QEMU Client Message (255)
+-------------------------
 
 This message may only be sent if the client has previously received
 a *FrameBufferUpdate* that confirms support for the intended
@@ -1870,8 +1881,8 @@ Submessage Type  Pseudo Encoding  Description
 1                -259             Audio
 ================ ================ ====================
 
-QEMU Extended Key Event Message
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+QEMU Extended Key Event Message (0)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This submessage allows the client to send an extended key event
 containing a keycode, in addition to a keysym. The advantage of
@@ -1930,8 +1941,8 @@ An unknown keysym should have the value 0. The client must not send a
 QEMU Extended Key Event Message if the keycode isn't known. Instead a
 standard `KeyEvent`_ message should be used.
 
-QEMU Audio Client Message
-~~~~~~~~~~~~~~~~~~~~~~~~~
+QEMU Audio Client Message (1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This submessage allows the client to control how the audio data
 stream is received. There are three operations that can be invoked
@@ -2048,8 +2059,8 @@ server must have determined that the client supports the relevant
 extension by receiving some extension-specific confirmation from the
 client; usually a request for a given pseudo-encoding.
 
-FramebufferUpdate
------------------
+FramebufferUpdate (0)
+---------------------
 
 A framebuffer update consists of a sequence of rectangles of pixel data
 which the client should put into its framebuffer. It is sent in
@@ -2094,8 +2105,8 @@ given time cannot be sure that it has received all framebuffer updates.
 
 See the `LastRect Pseudo-encoding`_ for an extension to this message.
 
-SetColourMapEntries
--------------------
+SetColourMapEntries (1)
+-----------------------
 
 When the pixel format uses a "colour map", this message tells the
 client that the specified pixel values should be mapped to the given
@@ -2120,8 +2131,8 @@ No. of bytes    Type                            Description
 2               ``U16``                         *blue*
 =============== =============================== =======================
 
-Bell
-----
+Bell (2)
+--------
 
 Ring a bell on the client if it has one.
 
@@ -2131,8 +2142,8 @@ No. of bytes    Type                 [Value]    Description
 1               ``U8``               2          *message-type*
 =============== ==================== ========== =======================
 
-ServerCutText
--------------
+ServerCutText (3)
+-----------------
 
 The server has new ISO 8859-1 (Latin-1) text in its cut buffer. Ends of
 lines are represented by the linefeed / newline character (value 10)
@@ -2150,8 +2161,8 @@ No. of bytes    Type                 [Value]    Description
 See also `Extended Clipboard Pseudo-Encoding`_ which modifies the
 behaviour of this message.
 
-EndOfContinuousUpdates
-----------------------
+EndOfContinuousUpdates (150)
+----------------------------
 
 This message is sent whenever the server sees a
 `EnableContinuousUpdates`_ message with *enable* set to a non-zero
@@ -2165,8 +2176,8 @@ No. of bytes    Type                 [Value]    Description
 1               ``U8``               150        *message-type*
 =============== ==================== ========== =======================
 
-ServerFence
------------
+ServerFence (248)
+-----------------
 
 A server supporting the *Fence* extension sends this to request a
 synchronisation of the data stream.
@@ -2184,8 +2195,8 @@ No. of bytes    Type                 [Value]    Description
 The format and semantics is identical to `ClientFence`_, but with the
 roles of the client and server reversed.
 
-xvp Server Message
-------------------
+xvp Server Message (250)
+------------------------
 
 This has the following format:
 
@@ -2214,8 +2225,8 @@ an operation which it is unable to perform, informs the client of this
 by sending a message with an XVP_FAIL *xvp-message-code*, and the same
 *xvp-extension-version* as included in the client's operation request.
 
-gii Server Message
-------------------
+gii Server Message (253)
+------------------------
 
 This message is an extension and may only be sent if the server has
 previously received a `SetEncodings`_ message confirming that the
@@ -2265,8 +2276,8 @@ are the actual message sub type.
 communications. A *device-origin* of zero indicates device creation
 failure.
 
-QEMU Server Message
--------------------
+QEMU Server Message (255)
+-------------------------
 
 This message may only be sent if the client has previously received
 a *FrameBufferUpdate* that confirms support for the intended
@@ -2294,8 +2305,8 @@ Submessage type 0 is unused, since the
 `QEMU Extended Key Event Pseudo-encoding`_ does not require any
 server messages.
 
-QEMU Audio Server Message
-~~~~~~~~~~~~~~~~~~~~~~~~~
+QEMU Audio Server Message (1)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This submessage allows the server to send an audio data stream
 to the client. There are three operations that can be invoked
@@ -2447,8 +2458,8 @@ Number                      Name
 
 The official, up-to-date list is maintained by IANA [#reg]_.
 
-Raw Encoding
-------------
+Raw Encoding (0)
+----------------
 
 The simplest encoding type is raw pixel data. In this case the data
 consists of *width* * *height* pixel values (where *width* and *height*
@@ -2464,8 +2475,8 @@ No. of bytes                            Type                Description
 *width* * *height* * *bytesPerPixel*    ``PIXEL`` array     *pixels*
 ======================================= =================== ===========
 
-CopyRect Encoding
------------------
+CopyRect Encoding (1)
+---------------------
 
 The *CopyRect* (copy rectangle) encoding is a very simple and efficient
 encoding which can be used when the client already has the same pixel
@@ -2487,8 +2498,8 @@ No. of bytes    Type                Description
 2               ``U16``             *src-y-position*
 =============== =================== ===================================
 
-RRE Encoding
-------------
+RRE Encoding (2)
+----------------
 
 RRE stands for *rise-and-run-length encoding* and as its name implies,
 it is essentially a two-dimensional analogue of run-length encoding.
@@ -2535,8 +2546,8 @@ No. of bytes    Type                Description
 2               ``U16``             *height*
 =============== =================== ===================================
 
-CoRRE Encoding
---------------
+CoRRE Encoding (4)
+------------------
 
 CoRRE stands for *compressed rise-and-run-length encoding* and as its
 name implies, it is a variant of the above `RRE Encoding`_ and as such
@@ -2570,8 +2581,8 @@ No. of bytes    Type                Description
 1               ``U8``              *height*
 =============== =================== ===================================
 
-Hextile Encoding
-----------------
+Hextile Encoding (5)
+--------------------
 
 Hextile is a variation on the RRE idea. Rectangles are split up into
 16x16 tiles, allowing the dimensions of the subrectangles to be
@@ -2688,8 +2699,8 @@ least-significant specify the Y position. The most-significant four
 bits of *width-and-height* specify the width minus one, the
 least-significant specify the height minus one.
 
-zlib Encoding
--------------
+zlib Encoding (6)
+-----------------
 
 The zlib encoding uses zlib [#zlib]_ to compress rectangles encoded
 according to the `Raw Encoding`_. A single zlib "stream" object is used
@@ -2708,8 +2719,8 @@ No. of bytes    Type                Description
 The *zlibData*, when uncompressed, represents a rectangle according to
 the `Raw Encoding`_.
 
-Tight Encoding
---------------
+Tight Encoding (7)
+------------------
 
 Tight encoding provides efficient compression for pixel data. To
 reduce implementation complexity, the width of any Tight-encoded
@@ -2910,8 +2921,8 @@ compression method.
     reset the indicated zlib streams even if the compression type is
     **FillCompression** or **JpegCompression**.
 
-zlibhex Encoding
-----------------
+zlibhex Encoding (8)
+--------------------
 
 The zlibhex encoding uses zlib [#zlib]_ to optionally compress
 subrectangles according to the `Hextile Encoding`_. Refer to the
@@ -2954,8 +2965,8 @@ subencoding.
 If neither the **ZlibRaw** nor the **Zlib** bit is set, the
 subrectangle follows the rules described in the `Hextile Encoding`_.
 
-ZRLE Encoding
--------------
+ZRLE Encoding (16)
+------------------
 
 ZRLE stands for Zlib [#zlib]_ Run-Length Encoding, and combines zlib
 compression, tiling, palettisation and run-length encoding. On the
@@ -3107,7 +3118,7 @@ are:
 
     Where *r* is floor((*runLength* - 1) / 255).
 
-Tight PNG Encoding
+Tight PNG Encoding (-260)
 -------------------------
 
 The Tight PNG encoding is a variant of the Tight encoding that
@@ -3149,8 +3160,8 @@ Bits            Binary value        Description
 Pseudo-encodings
 ++++++++++++++++
 
-JPEG Quality Level Pseudo-encoding
-----------------------------------
+JPEG Quality Level Pseudo-encoding (-23 to -32)
+-----------------------------------------------
 
 Specifies the desired quality from the JPEG encoder. Encoding number
 -23 implies high JPEG quality and -32 implies low JPEG quality. Low
@@ -3164,8 +3175,8 @@ neither what bandwidth is required at a certain quality level nor what
 image quality you can expect. The quality level is also just a hint to
 the server.
 
-Cursor Pseudo-encoding
------------------------
+Cursor Pseudo-encoding (-239)
+-----------------------------
 
 A client which requests the *Cursor* pseudo-encoding is declaring that
 it is capable of drawing a mouse cursor locally. This can significantly
@@ -3188,8 +3199,8 @@ No. of bytes                           Type             Description
 floor((*width* + 7) / 8) * *height*    ``U8`` array     *bitmask*
 ====================================== ================ ===============
 
-X Cursor Pseudo-encoding
-------------------------
+X Cursor Pseudo-encoding (-240)
+-------------------------------
 
 A client which requests the *X Cursor* pseudo-encoding is declaring
 that it is capable of drawing a mouse cursor locally. This can
@@ -3224,8 +3235,8 @@ floor((*width* + 7) / 8) * *height*    ``U8`` array     *bitmap*
 floor((*width* + 7) / 8) * *height*    ``U8`` array     *bitmask*
 ====================================== ================ ===============
 
-DesktopSize Pseudo-encoding
----------------------------
+DesktopSize Pseudo-encoding (-223)
+----------------------------------
 
 A client which requests the *DesktopSize* pseudo-encoding is declaring
 that it is capable of coping with a change in the framebuffer width
@@ -3296,8 +3307,8 @@ gracefully, e.g. by showing a black framebuffer or delay the screen
 update until a proper update of the framebuffer contents has been
 received.
 
-LastRect Pseudo-encoding
-------------------------
+LastRect Pseudo-encoding (-224)
+-------------------------------
 
 A client which requests the *LastRect* pseudo-encoding is declaring
 that it does not need the exact number of rectangles in a
@@ -3309,8 +3320,8 @@ this situation by saying that it is going to send 65535 rectangles,
 but it then stops with a *LastRect* instead of sending all of them.
 There is no further data associated with the pseudo-rectangle.
 
-Compression Level Pseudo-encoding
----------------------------------
+Compression Level Pseudo-encoding (-247 to -256)
+------------------------------------------------
 
 Specifies the desired compression level. Encoding number -247 implies
 high compression level, -256 implies low compression level. Low
@@ -3330,8 +3341,8 @@ as the tradeoff between CPU time and bandwidth is obvious there.
 However it can also be used for other algorithms where this tradeoff is
 relevant.
 
-QEMU Pointer Motion Change Pseudo-encoding
-------------------------------------------
+QEMU Pointer Motion Change Pseudo-encoding (-257)
+-------------------------------------------------
 
 A client that supports this encoding declares that is able to send
 pointer motion events either as absolute coordinates, or relative
@@ -3369,8 +3380,8 @@ back by 100 pixels. This ensures that continued movement of the
 user's input device will continue to generate relative deltas and
 thus avoid the "invisible wall" problem.
 
-QEMU Extended Key Event Pseudo-encoding
----------------------------------------
+QEMU Extended Key Event Pseudo-encoding (-258)
+----------------------------------------------
 
 A client that supports this encoding is indicating that it is able
 to provide raw keycodes as an alternative to keysyms. If a server
@@ -3379,8 +3390,8 @@ with the matching pseudo-encoding. After receiving this notification,
 clients may optionally use the `QEMU Extended Key Event Message`_ to
 send key events, in preference to the traditional `KeyEvent`_ message.
 
-QEMU Audio Pseudo-encoding
---------------------------
+QEMU Audio Pseudo-encoding (-259)
+---------------------------------
 
 A client that supports this encoding is indicating that it is able
 to receive an audio data stream. If a server wishes to send audio
@@ -3388,8 +3399,8 @@ data it will send an empty pseudo-rectangle with the matching
 pseudo-encoding. After receiving this notification, clients may
 optionally use the `QEMU Audio Client Message`_.
 
-QEMU LED State Pseudo-encoding
-------------------------------
+QEMU LED State Pseudo-encoding (-261)
+-------------------------------------
 
 A client that supports this encoding is indicating that it can toggle
 the state of lock keys on the local keyboard. The server will send a
@@ -3418,8 +3429,8 @@ An update must be sent whenever the server state changes, but may also
 be sent at other times to compensate for variance in behaviour between
 the server and client keyboard handling.
 
-gii Pseudo-encoding
--------------------
+gii Pseudo-encoding (-305)
+--------------------------
 
 A client that supports the General Input Interface extension starts by
 requesting the *gii* pseudo-encoding declaring that it is capable of
@@ -3434,8 +3445,8 @@ where the standard input model is insufficient. It supports relative
 mouse movements, mouses with more than 8 buttons and mouses with more
 than three axes. It even supports joysticks and gamepads.
 
-DesktopName Pseudo-encoding
----------------------------
+DesktopName Pseudo-encoding (-307)
+----------------------------------
 
 A client which requests the DesktopName pseudo-encoding is declaring
 that it is capable of coping with a change of the desktop name. The
@@ -3453,8 +3464,8 @@ No. of bytes    Type                Description
 
 The text encoding used for *name-string* is UTF-8.
 
-ExtendedDesktopSize Pseudo-encoding
------------------------------------
+ExtendedDesktopSize Pseudo-encoding (-308)
+------------------------------------------
 
 A client which requests the *ExtendedDesktopSize* pseudo-encoding is
 declaring that it is capable of coping with a change in the
@@ -3585,8 +3596,8 @@ need to parse the list of screens and can simply display the entire
 framebuffer whose extents were given by the *width* and *height*
 field of the ``FramebufferUpdate`` message.
 
-xvp Pseudo-encoding
--------------------
+xvp Pseudo-encoding (-309)
+--------------------------
 
 A client which requests the *xvp* pseudo-encoding is declaring that it
 wishes to use the *xvp* extension.  If the server supports this, it
@@ -3594,8 +3605,8 @@ replies with a message of type `xvp Server Message`_, using an
 *xvp-message-code* of *XVP_INIT*.  This informs the client that it may
 then subsequently send messages of type `xvp Client Message`_.
 
-Fence Pseudo-encoding
----------------------
+Fence Pseudo-encoding (-312)
+----------------------------
 
 A client which requests the *Fence* pseudo-encoding is declaring that
 it supports and/or wishes to use the *Fence* extension. The server
@@ -3604,8 +3615,8 @@ message with the *Fence* pseudo-encoding, in order to inform the client
 that this extension is supported. The message can use any flags or
 payload.
 
-ContinuousUpdates Pseudo-encoding
----------------------------------
+ContinuousUpdates Pseudo-encoding (-313)
+----------------------------------------
 
 A client which requests the *ContinuousUpdates* pseudo-encoding is
 declaring that it wishes to use the `EnableContinuousUpdates`_
@@ -3614,8 +3625,8 @@ first time it sees a ``SetEncodings`` message with the
 *ContinuousUpdates* pseudo-encoding, in order to inform the client that
 the extension is supported.
 
-Cursor With Alpha Pseudo-encoding
----------------------------------
+Cursor With Alpha Pseudo-encoding (-314)
+----------------------------------------
 
 A client which requests the *Cursor With Alpha* pseudo-encoding is
 declaring that it is capable of drawing a mouse cursor locally. This can
@@ -3643,8 +3654,8 @@ include the extra bits that are used for alpha. Also note that the data
 used for the cursor shares state with other rects. E.g. the zlib stream
 for a ZRLE encoding is the same as for data rects.
 
-JPEG Fine-Grained Quality Level Pseudo-encoding
------------------------------------------------
+JPEG Fine-Grained Quality Level Pseudo-encoding (-412 to -512)
+--------------------------------------------------------------
 
 The JPEG Fine-Grained Quality Level pseudo-encoding allows the image
 quality to be specified on a 0 to 100 scale, with -512 corresponding to image
@@ -3652,8 +3663,8 @@ quality 0 and -412 corresponding to image quality 100.  This pseudo-encoding
 was originally intended for use with JPEG-encoded subrectangles, but it could
 be used with other types of image encoding as well.
 
-JPEG Subsampling Level Pseudo-Encoding
---------------------------------------
+JPEG Subsampling Level Pseudo-Encoding (-763 to -768)
+-----------------------------------------------------
 
 The JPEG Subsampling Level pseudo-encoding allows the level of chrominance
 subsampling to be specified.  When a JPEG image is encoded, the RGB pixels are
@@ -3696,8 +3707,8 @@ The values for this pseudo-encoding are defined as follows:
 This pseudo-encoding was originally intended for use with JPEG-encoded
 subrectangles, but it could be used with other types of image encoding as well.
 
-VMware Cursor Pseudo-encoding
------------------------------
+VMware Cursor Pseudo-encoding (0x574d5664)
+------------------------------------------
 
 A server sets the cursor shape by sending a pseudo-rectangle with the
 VMware Cursor pseudo-encoding as part of an update. The
@@ -3746,8 +3757,8 @@ No. of bytes                            Type                Description
 Alpha cursors should be drawn by compositing the cursor image into the
 framebuffer.
 
-VMware Cursor State Pseudo-encoding
------------------------------------
+VMware Cursor State Pseudo-encoding (0x574d5665)
+------------------------------------------------
 
 A server sets the cursor state by sending a pseudo-rectangle with the
 VMware Cursor State pseudo-encoding as part of an update.
@@ -3779,16 +3790,16 @@ The cursor warp bit is set when the virtual machine artificially moves
 the position of the cursor. This value is for information purposes
 only.
 
-VMware Cursor Position Pseudo-encoding
---------------------------------------
+VMware Cursor Position Pseudo-encoding (0x574d5666)
+---------------------------------------------------
 
 A server updates the cursor position by sending a pseudo-rectangle with
 the VMware Cursor Position pseudo-encoding. The *x-position* and
 *y-position* define the new position of the cursor hot spot (not the
 the top left corner of cursor image).
 
-VMware Key Repeat Pseudo-encoding
----------------------------------
+VMware Key Repeat Pseudo-encoding (0x574d5667)
+----------------------------------------------
 
 The server notifies the client of changes to the keyboard key repeat by
 sending a pseudo-rectangle with the VMware Key Repeat
@@ -3808,8 +3819,8 @@ repeat, 0 if the server handles key repeat.
 *period* defines the period to wait between key repeats.
 *delay* defines the delay for the first key repeat.
 
-VMware LED State Pseudo-encoding
----------------------------------
+VMware LED State Pseudo-encoding (0x574d5668)
+---------------------------------------------
 
 The server sends a pseudo-rectangle with the VMware LED State
 pseudo-encoding to toggle the state of lock keys on the keyboard.
@@ -3835,8 +3846,8 @@ Bit             Description
 
 The remaining bits are reserved and must be ignored.
 
-VMware Display Mode Change Pseudo-encoding
-------------------------------------------
+VMware Display Mode Change Pseudo-encoding (0x574d5669)
+-------------------------------------------------------
 
 The server changes the desktop size by sending a pseudo-rectangle with
 the VMware Display Mode Change pseudo-encoding.
@@ -3872,8 +3883,8 @@ No. of bytes    Type                 Description
 3                                    padding
 =============== ==================== =======================
 
-VMware Virtual Machine State Pseudo-encoding
---------------------------------------------
+VMware Virtual Machine State Pseudo-encoding (0x574d566a)
+---------------------------------------------------------
 
 The server sends a pseudo-rectangle with the VMware Virtual Machine
 State pseudo-encoding to notify the client of changes in the Virtual
@@ -3895,8 +3906,8 @@ Bit             Description
 1               A end-user sitting at a local virtual machine console has temporarily disabled VNC updates.
 =============== =======================================================
 
-Extended Clipboard Pseudo-Encoding
-----------------------------------
+Extended Clipboard Pseudo-Encoding (0xc0a1e5ce)
+-----------------------------------------------
 
 A client which requests the *Extended Clipboard* pseudo-encoding is
 declaring that it supports the extended versions of the
