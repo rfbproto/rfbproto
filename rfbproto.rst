@@ -3925,6 +3925,14 @@ an infinite loop.
 The server must also send an *ExtendedDesktopSize* rectangle in
 response to a *SetDesktopSize* message, indicating the result.
 
+When the `VMware Display Mode Change Pseudo-encoding`_ encoding is
+also supported by both the server and client, the server must send
+an *ExtendedDesktopSize* rectangle immediately following every
+*VMware Display Mode Change* rectangle, with same *width* and *height*.
+The rectangles may be sent in separate `FramebufferUpdate` messages,
+however, no other psuedo or data rectangles are permitted inbetween
+the *VMware Display Mode Change* and *ExtendedDesktopSize* rectangles.
+
 For a full description of server behaviour as a result of the
 *SetDesktopSize* message, see `SetDesktopSize`_.
 
@@ -4302,6 +4310,16 @@ ServerInitialisation header to facilitate client implementations.
 
 The new pixel format takes effect immediately after the server sends
 a pseudo-rectangle with the VMware Display Mode Change pseudo-encoding.
+
+When the `ExtendedDesktopSize Pseudo-encoding`_ encoding is also
+supported by both the server and client, the server must send an
+*ExtendedDesktopSize* rectangle immediately following every *VMware
+Display Mode Change* rectangle, with the same *width* and *height*.
+The rectangles may be sent in separate `FramebufferUpdate` messages,
+however, no other psuedo or data rectangles are permitted inbetween
+the *VMware Display Mode Change* and *ExtendedDesktopSize* rectangles.
+Clients supporting multi-head layouts must wait for this following
+*ExtendedDesktopSize* rectangle to determine the new layout.
 
 The *width*  and *height* of the pseudo-rectangle specify the new width
 and height of the display. The rest of the format is described below:
