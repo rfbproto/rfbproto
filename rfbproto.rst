@@ -873,12 +873,18 @@ pixel format will be used unless the client requests a different format
 using the *SetPixelFormat* message (`SetPixelFormat`_).
 
 *Bits-per-pixel* is the number of bits used for each pixel value on the
-wire. This must be greater than or equal to the depth which is the
+wire. This must be greater than or equal to *depth*, which is the
 number of useful bits in the pixel value. Currently *bits-per-pixel*
 must be 8, 16 or 32. Less than 8-bit pixels are not yet supported.
 *Big-endian-flag* is non-zero (true) if multi-byte pixels are
 interpreted as big endian. Of course this is meaningless for 8
 bits-per-pixel.
+
+*Depth* should be the sum of bits used according to *red-max*,
+*green-max*, and *blue-max*, or the number of bits needed for indices
+in the colour map, depending on the value of *true-color-flag*. Note
+that some servers will send a *depth* that is identical to
+*bits-per-pixel* for historical reasons.
 
 If *true-colour-flag* is non-zero (true) then the last six items
 specify how to extract the red, green and blue intensities from the
