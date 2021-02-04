@@ -2362,6 +2362,7 @@ Number       Name
 7            `Tight Encoding`_
 8            `zlibhex Encoding`_
 16           `ZRLE Encoding`_
+50           `Open H.264 Encoding`_
 -260         `Tight PNG Encoding`_
 ============ ==========================================================
 
@@ -3112,6 +3113,82 @@ are:
     =================== =============== ======= =======================
 
     Where *r* is floor((*runLength* - 1) / 255).
+
+Open H.264 Encoding
+-------------------
+
+The Open H.264 Encoding implements the widely used H.264 format
+for efficient rectangle compression for transmission over poor
+communication channels.
+
+The message looks like this:
+
+    =============== ================ ==================================
+    No. of bytes    Type             Description
+    =============== ================ ==================================
+    4               ``U32``          *length* of *data*
+    4               ``U32``          *flags*
+    *length*        ``U8`` array     *data*
+    =============== ================ ==================================
+
+The *flags* is used by the server to send additional information
+to the client. The current values of the *flags* are listed below.
+Unknown flag values should be ignored by the client.
+
+    =============== ===================================================
+    Bit             Description
+    =============== ===================================================
+    0               **ResetContext**
+    1               **ResetAllContexts**
+    2-31            Currently unused
+    =============== ===================================================
+
+The *data* is one or more H.264 frames glued together in a row.
+This encoding prescribes the use of the H.264 baseline profile
+for the lowest latency.
+
+Since H.264 is a differential format, this introduces the concept
+of context for RFB frame. The context is the state of the H.264
+encoder/decoder associated with a particular rectangle. When the server
+wants to send an H.264 rectangle, the *rect* coordinates and size
+inside a *FrameBufferUpdate* will be used to find the decoder context
+in the client. If the client finds a suitable decoder that can be used
+for the specified coordinates, the client uses it (and its internal
+state) to decode and display the new frame. The client should only
+decode frames based on the internal state of the context and ignore
+changes in the output buffer that may occur when overlapping of rects.
+When new data is received, the client context will redraw its rectangle
+and update the previously overlapped data.
+
+The server can use the *flags* to control the contexts of the client.
+All currently existing flags must be applied before decoding.
+The **ResetContext** flag requires the client to delete the current
+context with coordinates specified in *FrameBufferUpdate* and create
+a new one. The **ResetAllContexts** flag deletes all client contexts.
+
+The server can send an empty *data* and *length* equal to zero,
+in which case the client must interpret this *FramebufferUpdate*
+as a control message and apply the *flags*.
+
+The server can send multiple frames in a single *data*, which must be
+parsed as a regular H.264 stream. The server is unable to split frames
+into multiple packets. The *data* field must always contain 0 or more
+whole frames. The client must first decode all the received frames
+in a single message, and then display the result.
+
+The server must start sending *data* for the new context from I-frame
+to provide correct decoding for the client side.
+
+The client can handle decoding errors at its discretion. However,
+the recommended processing method is to ignore and wait for the correct
+frame from the server side.
+
+The client must support 64 simultaneously contexts. The server must use
+a minimum number of contexts to ensure that a single screen works.
+Ideally, one context per screen. When trying to create a new context
+beyond 64, the client must destroy the oldest context, then create
+the new one. The oldest context is the one that has not received frame
+updates for the longest time.
 
 Tight PNG Encoding
 -------------------------
