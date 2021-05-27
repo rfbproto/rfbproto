@@ -374,6 +374,7 @@ Number      Name
 2           `VNC Authentication`_
 16          `Tight Security Type`_
 19          `VeNCrypt`_
+20          `SASL`_
 =========== ===========================================================
 
 Other registered security types are:
@@ -387,7 +388,6 @@ Number      Name
 7-15        RealVNC
 17          Ultra
 18          TLS
-20          SASL
 21          MD5 hash authentication
 22          xvp
 23          Secure Tunnel
@@ -800,11 +800,349 @@ is completed.
 Subtypes with SASL suffix
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Authentication continues with the SASL method when TLS handshake is completed.
+Authentication continues with the `SASL`_ method when TLS handshake is completed.
 
-..
-  XXX: Correct link to the SASL method when it gets accepted.
+SASL
+----
 
+The SASL security type provides a mapping of RFC 2222 into the RFB protocol.
+It design allows for arbitrary pluggable authentication and session encryption
+capabilities, without further changes being required to either the RFB protocol
+or client/server implementations.
+
+SASL mechanisms can optionally provide session encryption in addition to
+authentication. Some SASL implementations only support authentication, and
+the session encryption provided by some mechanisms is no longer considered
+to be secure by modern crytographic standards. Thus it is recommended to
+combine use of the SASL secrity type with separate session encryption,
+either via the `VeNCrypt`_ security type, or an external encrypted channel
+(eg stunnel or SSH).
+
+The SASL negotiation is a multi-step protocol, initiated by the server. The
+precise number of steps required for the complete negotiation is determined
+by the SASL mechanism chosen for auth. Compliant implementations must expect
+an arbitrary number of steps.
+
+SASL server initialization message
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The server initializes the SASL authentication process by sending the list of
+mechanisms it is prepared to accept from the client.
+
+================== =============================== =======================
+No. of bytes       Type                            Description
+================== =============================== =======================
+4                  ``U32``                         *mechlist-length*
+*mechlist-length*  ``U8`` array                    *mechlist-string*
+================== =============================== =======================
+
+The *mechlist-string* is a list of SASL mechanism names, each separated by
+a comma. The *mechlist-length* is the number of characters in the string,
+not including the trailing ``\0``, which is not sent on the wire. Some
+example *mechlist-string* values are::
+
+  DIGEST-MD5,GSSAPI
+  ANONYMOUS,KERBEROS_V4,DIGEST-MD5
+
+The *mechlist-string* is typically generated on the server by a call
+to the SASL library function::
+
+  err = sasl_listmech(vs->saslconn,
+                      NULL,
+                      "",  /* Prefix */
+                     ",", /* Separator */
+                     "",  /* Suffix */
+                     &mechlist, NULL, NULL);
+
+The library used for the SASL implementation will usually provide a
+means for the administrator to configure exactly what mechanisms are
+enabled for an application. If `sasl_listmech``, or any later
+SASL library calls fail, the server (or client) must terminate
+the connection immediately without sending further data unless
+specified otherwise.
+
+The server must now wait for the (`SASL client start message`_)
+
+SASL client start message
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Upon receiving the list of mechanisms allowed by the server, the
+client may choose a specific mechanism from the list, or allow the
+SASL library to make the choice.
+
+The client shall call ``sasl_client_start`` providing either a
+specific mechanism name, or the full *mechlist-string* received
+from the server. The client shall normally supply a list of
+interaction prompts (callbacks) that the library can use to
+collect credentials from the user. If interaction prompts are
+omitted, this may limit the set of mechanisms that can be used.
+Client implementations of this spec are encouraged to support
+as many of the SASL prompts as practical, to maximise the
+interoperability with server supported mechanisms.
+
+If the ``sasl_client_start`` call is succesfull, the chosen
+mechanism name and generated *clientout* data will need to be
+sent to the server in a message
+
+=================== =============================== =======================
+No. of bytes        Type                            Description
+=================== =============================== =======================
+4                   ``U32``                         *mechname-length*
+*mechname-length*   ``U8`` array                    *mechname-string*
+4                   ``U32``                         *clientout-length*
+*clientout-length*  ``U8`` array                    *clientout-data*
+=================== =============================== =======================
+
+The distinction between NULL and "" (empty string) in the *clientout-data*
+is critical to preserve. Thus the *clientout-length* will specify the length
+of the *clientout-data* INCLUDING the trailing '\0', such that the empty
+string has *clientout-length* equal to 1, while NULL data will be transmitted
+with *clientout-length* equal to 0.
+
+The *mechname-string* is the mechanism name chosen by the client from the list
+of advertised mechanisms from the server. *mechname-length* does not include
+the trailing '\0' character, as this is not sent back to the server.
+
+Upon receiving the chosen *mechname-string* from the client, the server must
+validate that it was one of the mechanisms originally advertised to the client.
+
+Given a successfull call to::
+
+     sasl_client_start(saslconn,
+                       mechlist,
+                       &interact,
+                       &clientout,
+                       &clientoutlen,
+                       &mech);
+
+When sending the server reply the following logic is compliant with the
+wire protocol described above::
+
+      write_u32(strlen(mech))
+      write_u8(mech, strlen(mech))
+
+      if (clientout != NULL) {
+         write_u32(strlen(clientout) + 1)
+         write_u8(clientout, strlen(clientout) + 1)
+      } else {
+         write_u32(0)
+      }
+
+The client must now wait for the `SASL server start message`_
+
+SASL server start message
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Upon receiving the `SASL client start message`_, the server must validate
+that the chosen mechanism was amongst those originally advertised to
+the client. It shall then call the ``sasl_server_start`` API passing
+the *clientout-data* from the `SASL client start message`_, taking care
+to preserve the NULL vs "" distinction when de-serializing.
+
+If the ``sasl_server_start`` call is successful, the returned *serverout-data*
+will need to be sent back to the client.
+
+=================== =============================== =======================
+No. of bytes        Type                            Description
+=================== =============================== =======================
+4                   ``U32``                         *serverout-length*
+*serverout-length*  ``U8`` array                    *serverout-data*
+1                   ``U8``                          *complete-flag*
+=================== =============================== =======================
+
+The distinction between NULL and "" (empty string) is critical to preserve.
+Thus the *serverout-length* will specify the length of the *serverout-data*
+data INCLUDING the trailing '\0', such that the empty string has
+*serverout-length* equal to 1, while NULL data will be transmitted with
+*serverout-length* equal to 0.
+
+If the ``sasl_server_start`` method indicates that further steps in the
+negotiation process are required, the *complete-flag* value shall be ``0``,
+otherwise upon successful completion, or failure of authentication it
+shall be ``1``.
+
+Given a call to::
+
+    err = sasl_server_start(saslconn,
+                            mechname,
+                            clientin,
+                            clientinlen,
+                            &servertout,
+                            &serveroutlen);
+
+When sending the server reply the following logic is compliant with the
+wire protocol described above::
+
+    if (err == SASL_OK or err == SASL_CONTINUE) {
+      if (serverout != NULL) {
+         write_u32(strlen(serverout) + 1)
+         write_u8(serverout, strlen(serverout) + 1)
+      } else {
+         write_u32(0)
+      }
+      if (err == SASL_OK)
+         write_u8(1)
+      else
+         write_u8(0)
+    } else {
+      write_u8(0)
+      write_u8(1)
+    }
+
+If *complete-flag* is 1, then the server must continue with the
+`SASL server result check`_ phase, otherwise the server must wait for
+the `SASL client step message`_.
+
+SASL client step message
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Upon receiving either a `SASL server start message`_, or a
+`SASL server step message`_, the client must always call the
+``sasl_client_step`` API providing the *serverin-data* received.
+The final call to ``sasl_client_step`` is important for the client
+to validate that the server was truthful in indicating completion
+for mechanisms that perform mutual authentication.
+
+A compliant client shall be prepared to receive zero or more
+`SASL server step message`_, as dictated by the negotiated security
+mechanism.
+
+If the ``sasl_client_step`` call is successful, and the previously
+received `SASL server start message`_ or `SASL server step message`_
+had the *complete-flag* value set to 1, the client continues with the
+`SASL client result check`_ phase. Otherwise if the *complete-flag*
+value was 0, the *clientout-data* from the ``sasl_client_step``
+API call will need to be sent to the server.
+
+=================== =============================== =======================
+No. of bytes        Type                            Description
+=================== =============================== =======================
+4                   ``U32``                         *clientout-length*
+*clientout-length*  ``U8`` array                    *clientout-data*
+=================== =============================== =======================
+
+The distinction between NULL and "" (empty string) is critical to preserve.
+Thus the *clientout-length* will specify the length of the *clientout-data*
+INCLUDING the trailing '\0', such that the empty string has *clientout-length*
+equal to 1, while NULL data will be transmitted with *clientout-length* equal to 0.
+
+Given a successfull call::
+
+     sasl_client_step(saslconn,
+                      serverin,
+                      serverinlen,
+                      &clientout,
+                      &clientoutlen)
+
+And a previous *complete-flag* value of '0', when the following logic for sending
+a response to the server is compliant with the wire protocol::
+
+      if (clientout != NULL) {
+         write_u32(strlen(clientout) + 1)
+         write_u8(clientout, strlen(clientout) + 1)
+      } else {
+         write_u32(0)
+      }
+
+The client must now wait for a `SASL server step message`_
+
+SASL server step message
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Upon receiving a `SASL client step message`_, the server must
+call the ``sasl_server_step`` API passing the *clientout-data*
+received from the client, taking care to preserve the NULL vs ""
+distinction when de-serializing.
+
+If the ``sasl_server_step`` call is successfull, the returned
+*serverout-data* will need to be sent to the server
+
+=================== =============================== =======================
+No. of bytes        Type                            Description
+=================== =============================== =======================
+4                   ``U32``                         *serverout-length*
+*serverout-length*  ``U8`` array                    *serverout-data*
+1                   ``U8``                          *complete-flag*
+=================== =============================== =======================
+
+The distinction between NULL and "" (empty string) is critical to preserve. Thus
+the *serverout-length* will specify the length of the *serverout-data* INCLUDING
+the trailing '\0', such that the empty string has *serverout-length* equal to 1,
+while NULL data will be transmitted with *serverout-length* equal to 0.
+
+If the ``sasl_server_step`` method indicates that further steps in the negotiation
+process are required, the *complete-flag* value shall be 0, otherwise upon successful
+completion, or failure of authentication it shall be 1.
+
+Given a call to::
+
+    err = sasl_server_step(saslconn,
+                           clientin,
+                           clientinlen,
+                           &serverout,
+                           &serveroutlen);
+
+When sending the server reply the following logic is compliant with the wire protocol::
+
+    if (err == SASL_OK or err == SASL_CONTINUE) {
+      if (serverout != NULL) {
+         write_u32(strlen(serverout) + 1)
+         write_u8(serverout, strlen(serverout) + 1)
+      } else {
+        write_u32(0)
+      }
+      if (err == SASL_OK)
+         write_u8(1)
+      else
+         write_u8(0)
+    } else {
+      write_u8(0)
+      write_u8(1)
+    }
+
+If *complete-flag* is 1, then the server continues with the
+`SASL server result check`_ phase, otherwise it waits for a further
+`SASL client step message`_.
+
+SASL client result check
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+At this point the client and server have completed the SASL negotiation
+process. If the client had requested an SSF layer during its initial it
+should now validate that a suitable SSF layer was negotiated with the
+server. If the SSF layer is unsuitable it must drop the connection to the
+server.
+
+If the SSF layer is enabled, and suitable for the client, all future
+messages transmitted over the RFB protocol shall be passed through the
+``sasl_encode`` API, and all messages received from the server AFTER the
+forthcoming `SecurityResult`_ message shall be passed through ``sasl_decode``.
+
+The client now proceeds to wait for the ``SecurityResult`` message, to
+determine whether the server considers the negotiation successful.
+
+SASL server result check
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+At this point the client and server have completed the SASL negotation process.
+
+If the SASL negotiation indicated that the client failed to correctly
+authenticate, it shall send `SecurityResult`_ message indicating that
+the authentication has failed and then drop the connection.
+
+The client and server are now authenticated, but before continuing, if the
+server had requested an SSF layer during its initial it should now validate
+that a suitable SSF layer was negotiated with the client. If the SSF layer
+is unsuitable it shall send a `SecurityResult`_ message indicating that
+authentication has failed and then drop the connection to the client.
+
+If the SSF layer is enabled, and suitable for the client, all messages
+transmitted over the RFB protocol AFTER the ``SecurityResult`` message
+shall be passed through the "sasl_encode" API, and all messages received
+from the client shall be passed through ``sasl_decode``.
+
+The server proceeds to send the `SecurityResult`_ message indicating
+successful authentication.
 
 Initialisation Messages
 +++++++++++++++++++++++
