@@ -374,6 +374,7 @@ Number      Name
 2           `VNC Authentication`_
 16          `Tight Security Type`_
 19          `VeNCrypt`_
+22          `xvp Authentication`_
 =========== ===========================================================
 
 Other registered security types are:
@@ -389,7 +390,6 @@ Number      Name
 18          TLS
 20          SASL
 21          MD5 hash authentication
-22          xvp
 23          Secure Tunnel
 24          Integrated SSH
 30-35       Apple Inc.
@@ -805,6 +805,28 @@ Authentication continues with the SASL method when TLS handshake is completed.
 ..
   XXX: Correct link to the SASL method when it gets accepted.
 
+xvp Authentication
+------------------
+
+The xvp security type extends the standard `VNC Authentication`_ with a
+username and a target system that the client wishes to connect to.
+
+After the xvp security type is selected the server sends out the username and
+the target system name:
+
+================= ============= ========================================
+No. of bytes      Type          Description
+================= ============= ========================================
+1                 ``U8``        *username-length*
+1                 ``U8``        *target-length*
+*username-length* ``U8`` array  *username*
+*target-length*   ``U8`` array  *target*
+================= ============= ========================================
+
+Both *username* and *target* should be encoded using UTF-8.
+
+After that the communication continues as if `VNC Authentication`_ had
+been selected.
 
 Initialisation Messages
 +++++++++++++++++++++++
