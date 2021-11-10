@@ -375,6 +375,7 @@ Number      Name
 16          `Tight Security Type`_
 19          `VeNCrypt`_
 22          `xvp Authentication`_
+30          `Diffie-Hellman Authentication`_
 =========== ===========================================================
 
 Other registered security types are:
@@ -392,7 +393,7 @@ Number      Name
 21          MD5 hash authentication
 23          Secure Tunnel
 24          Integrated SSH
-30-35       Apple Inc.
+31-35       Apple Inc.
 128-255     RealVNC
 =========== ===========================================================
 
@@ -827,6 +828,46 @@ Both *username* and *target* should be encoded using UTF-8.
 
 After that the communication continues as if `VNC Authentication`_ had
 been selected.
+
+Diffie-Hellman Authentication
+-----------------------------
+
+The Diffie-Hellman security type allows authentication using a username
+and password with protection from eavesdropping.
+
+After the Diffie-Hellman security type is selected the server sends over
+a set of Diffie-Hellman parameters:
+
+================= ============= ========================================
+No. of bytes      Type          Description
+================= ============= ========================================
+2                 ``U16``       *generator*
+2                 ``U16``       *key-size*
+*key-size*        ``U8`` array  *prime-modulus*
+*key-size*        ``U8`` array  *public-value*
+================= ============= ========================================
+
+The client can then generate a shared secret from these values using the
+Diffie-Hellman algorithm. An AES encryption key is then derived from
+this shared secret by generating a MD5 digest of the shared secret.
+
+The client should encrypt the username and password using AES in ECB
+mode. Both fields should be encoded using UTF-8, NULL terminated and
+padded with random data so the length of each is 64 bytes. I.e. the
+total plain text message should be 128 bytes.
+
+The client then sends the encrypted data, and it's public value to the
+server as such:
+
+================= ============= ========================================
+No. of bytes      Type          Description
+================= ============= ========================================
+128               ``U8`` array  *encrypted-credentials*
+*key-size*        ``U8`` array  *public-value*
+================= ============= ========================================
+
+After that the server verifies if supplied credentials are correct and
+continues with the `SecurityResult`_ message.
 
 Initialisation Messages
 +++++++++++++++++++++++
