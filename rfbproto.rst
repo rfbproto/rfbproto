@@ -2362,6 +2362,7 @@ Number       Name
 7            `Tight Encoding`_
 8            `zlibhex Encoding`_
 16           `ZRLE Encoding`_
+21           `JPEG Encoding`_
 50           `Open H.264 Encoding`_
 -260         `Tight PNG Encoding`_
 ============ ==========================================================
@@ -2410,7 +2411,6 @@ Number                      Name
 15                          TRLE
 17                          Hitachi ZYWRLE
 20                          H.264
-21                          JPEG
 22                          JRLE
 1000 to 1002                Apple Inc.
 1011                        Apple Inc.
@@ -3113,6 +3113,25 @@ are:
     =================== =============== ======= =======================
 
     Where *r* is floor((*runLength* - 1) / 255).
+
+JPEG Encoding
+-------------
+
+The JPEG encoding uses JPEG format to compress rects. The message is
+simply a JPEG image:
+
+=============== ================ ======================================
+No. of bytes    Type             Description
+=============== ================ ======================================
+variable        ``U8`` array     *data*
+=============== ================ ======================================
+
+As defined in the JPEG standard, a JPEG image consists of a sequence of
+segments, each of which begins with a marker. The EOF marker indicates
+the end of the message. When the segments of
+"Define Huffman Tables (DHT)" or "Define Quantization Tables (DQT)"
+do not exist, the client should reuse the previous Huffman tables or 
+quantization tables for decoding.
 
 Open H.264 Encoding
 -------------------
