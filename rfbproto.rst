@@ -631,24 +631,24 @@ type has been activated.
 Tight Unix Login Authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Tight Unix Login Authentication is to be used and the client sends a username
-and password in the following form:
+Tight Unix Login Authentication is to be used and the client sends a
+username and password in the following form:
 
-================= ============= =========================================
+================= ============= ========================================
 No. of bytes      Type          Description
-================= ============= =========================================
+================= ============= ========================================
 4                 ``U32``       *username-length*
 4                 ``U32``       *password-length*
 *username-length* ``U8`` array  *username*
 *password-length* ``U8`` array  *password*
-================= ============= =========================================
+================= ============= ========================================
 
-The text encoding used for username and password are historically undefined
-but it is strongly recommended to use UTF-8 (see `String Encodings`_ for
-more details).
+The text encoding used for username and password are historically
+undefined but it is strongly recommended to use UTF-8 (see
+`String Encodings`_ for more details).
 
-After receiving the credentials, the server verifies if they are correct and
-continues with the `SecurityResult`_ message.
+After receiving the credentials, the server verifies if they are correct
+and continues with the `SecurityResult`_ message.
 
 VeNCrypt
 --------
@@ -667,8 +667,8 @@ No. of bytes    Type    Value   Description
 1               ``U8``  2       Minor version number
 =============== ======= ======= =======================================
 
-Then client sends back the highest VeNCrypt version it can support, up to
-version that it received from the server.
+Then client sends back the highest VeNCrypt version it can support, up
+to version that it received from the server.
 
 =============== ======= ===============================================
 No. of bytes    Type    Description
@@ -737,16 +737,16 @@ No. of bytes    Type    Description
 1               ``U8``  Ack
 =============== ======= ===============================================
 
-When subtype is selected authentication continues as written in particular
-VeNCrypt subtype description.
+When subtype is selected authentication continues as written in
+particular VeNCrypt subtype description.
 
 Subtypes with TLS or X509 prefix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-All those subtypes use TLS-encrypted stream and server use anonymous X509
-certificate (subtypes with the TLS prefix) or valid X509 certificate
-(subtypes with the X509 prefix). When session is negotiated, all further
-traffic is send via this encrypted channel.
+All those subtypes use TLS-encrypted stream and server use anonymous
+X509 certificate (subtypes with the TLS prefix) or valid X509
+certificate (subtypes with the X509 prefix). When session is negotiated,
+all further traffic is send via this encrypted channel.
 
 After receiving the U32 confirmation of the VeNCrypt subtype,
 the TLS handshake is performed between the client and server.
@@ -783,14 +783,14 @@ Plain subtype
 
 Client sends the username and password in the following form:
 
-================= ============= =========================================
+================= ============= ========================================
 No. of bytes      Type          Description
-================= ============= =========================================
+================= ============= ========================================
 4                 ``U32``       *username-length*
 4                 ``U32``       *password-length*
 *username-length* ``U8`` array  *username*
 *password-length* ``U8`` array  *password*
-================= ============= =========================================
+================= ============= ========================================
 
 After that server verifies if supplied credentials are correct and
 continues with the `SecurityResult`_ message.
@@ -798,13 +798,14 @@ continues with the `SecurityResult`_ message.
 Subtypes with Plain suffix
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Authentication continues with the `Plain subtype`_ method when TLS handshake
-is completed.
+Authentication continues with the `Plain subtype`_ method when TLS
+handshake is completed.
 
 Subtypes with SASL suffix
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Authentication continues with the SASL method when TLS handshake is completed.
+Authentication continues with the SASL method when TLS handshake is
+completed.
 
 ..
   XXX: Correct link to the SASL method when it gets accepted.
@@ -815,8 +816,8 @@ xvp Authentication
 The xvp security type extends the standard `VNC Authentication`_ with a
 username and a target system that the client wishes to connect to.
 
-After the xvp security type is selected the server sends out the username and
-the target system name:
+After the xvp security type is selected the server sends out the
+username and the target system name:
 
 ================= ============= ========================================
 No. of bytes      Type          Description
