@@ -606,6 +606,9 @@ Code    Vendor      Signature       Description
 130     "``TGHT``"  "``XTRNAUTH``"  External Authentication
 ======= =========== =============== ===================================
 
+Note that the codes used here are independent from the standard
+security types and cannot be used interchangeably.
+
 If *number-of-auth-types* is non-zero, the client has to request an
 authentication type from the list with an authentication scheme
 request:
