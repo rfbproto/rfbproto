@@ -372,10 +372,16 @@ Number      Name
 0           Invalid
 1           `None`_
 2           `VNC Authentication`_
+5           `RSA-AES Security Type`_
+6           `RSA-AES Unencrypted Security Type`_
+13          `RSA-AES Two-step Security Type`_
 16          `Tight Security Type`_
 19          `VeNCrypt`_
 22          `xvp Authentication`_
 30          `Diffie-Hellman Authentication`_
+129         `RSA-AES-256 Security Type`_
+130         `RSA-AES-256 Unencrypted Security Type`_
+133         `RSA-AES-256 Two-step Security Type`_
 =========== ===========================================================
 
 Other registered security types are:
@@ -384,9 +390,8 @@ Other registered security types are:
 Number      Name
 =========== ===========================================================
 3-4         RealVNC
-5           RA2
-6           RA2ne
-7-15        RealVNC
+7-12        RealVNC
+14-15       RealVNC
 17          Ultra
 18          TLS
 20          SASL
@@ -394,7 +399,9 @@ Number      Name
 23          Secure Tunnel
 24          Integrated SSH
 31-35       Apple Inc.
-128-255     RealVNC
+128         RealVNC
+131-132     RealVNC
+134-255     RealVNC
 =========== ===========================================================
 
 The official, up-to-date list is maintained by IANA [#reg]_.
@@ -809,6 +816,220 @@ completed.
 
 ..
   XXX: Correct link to the SASL method when it gets accepted.
+
+RSA-AES Security Type
+---------------------
+After this security type is selected, the server sends its RSA
+public key. The public key, i.e., the modulus and the public exponent,
+are big-endian unsigned integers. If the key length is too small or too
+big, the client will disconnect.
+
+============================= ============ ============================
+No. of bytes                  Type         Description
+============================= ============ ============================
+4                             ``U32``      *server-key-length*
+*ceil(server-key-length / 8)* ``U8`` array modulus
+*ceil(server-key-length / 8)* ``U8`` array public exponent
+============================= ============ ============================
+
+The client should verify the server's public key to ensure that it is
+trustworthy. Then the client also sends its public key.
+
+============================= ============ ============================
+No. of bytes                  Type         Description
+============================= ============ ============================
+4                             ``U32``      *client-key-length*
+*ceil(client-key-length / 8)* ``U8`` array modulus
+*ceil(client-key-length / 8)* ``U8`` array public exponent
+============================= ============ ============================
+
+Note that *client-key-length* can be different from
+*server-key-length*.
+
+If the key length is too small or too big, the server will disconnect.
+
+The server generates a random number of 16 bytes and encrypts it with
+the client's public key. The EME-PKCS1-v1_5 padding algorithm is used.
+Then the server sends the encrypted random number.
+
+=============== ============ ==========================================
+No. of bytes    Type         Description
+=============== ============ ==========================================
+2               ``U16``      *length*
+*length*        ``U8`` array encrypted random number
+=============== ============ ==========================================
+
+The *length* of the encrypted random number equals to
+*ceil(client-key-length / 8)*. 
+
+The client also generates a random number of 16 bytes, encrypts it with
+the server's public key and then sends it.
+
+=============== ============ ==========================================
+No. of bytes    Type         Description
+=============== ============ ==========================================
+2               ``U16``      *length*
+*length*        ``U8`` array encrypted random number
+=============== ============ ==========================================
+
+The *length* of the encrypted random number equals to
+*ceil(server-key-length / 8)*. 
+
+The server's random number is decrypted with the client's private key.
+At the same time, the client's random number is decrypted with the
+server's private key. Now both random numbers are known by both sides.
+The client session key and server session key can be derived
+as follows::
+
+    ClientSessionKey = the first 16 bytes of SHA1(ServerRandom || ClientRandom)
+    ServerSessionKey = the first 16 bytes of SHA1(ClientRandom || ServerRandom)
+
+where ``||`` means concatenation.
+
+The client session key is used to encrypted the messages from the
+client to the server. The server session key is used to encrypted the
+messages from the server to the client.
+
+After that, all the messages will be encrypted with the AES-EAX mode,
+which involves AES-CTR and CMAC. For each message, there is a message
+header of a 2-byte big-endian integer, which stands for the length of
+the message and is also the associated data of the AES-EAX mode. Also,
+a 16-byte little-endian message index increments from zero as the
+nonce of the AES-EAX mode. The size of MAC is 16 bytes. An encrypted
+message looks like:
+
+================= ============ ========================================
+No. of bytes      Type         Description
+================= ============ ========================================
+2                 ``U16``      *message-length*
+*message-length*  ``U8`` array encrypted message
+16                ``U8`` array MAC generated by the AES-EAX mode
+================= ============ ========================================
+
+The server computes and sends the encrypted server hash::
+
+    ServerHash = SHA1(ServerPublicKey || ClientPublicKey)
+
+Note that *ServerPublicKey* is of *ceil(server-key-length / 8) * 2 + 4*
+bytes and *ClientPublicKey* is of *ceil(client-key-length / 8) * 2 + 4*
+bytes.
+
+=============== ============ ======= ==================================
+No. of bytes    Type         Value   Description
+=============== ============ ======= ==================================
+2               ``U16``      20      length of the server hash
+20              ``U8`` array         encrypted server hash
+16              ``U8`` array         MAC
+=============== ============ ======= ==================================
+
+The client computes and sends the encrypted client hash::
+
+    ClientHash = SHA1(ClientPublicKey || ServerPublicKey)
+
+=============== ============ ======= ==================================
+No. of bytes    Type         Value   Description
+=============== ============ ======= ==================================
+2               ``U16``      20      length of the client hash
+20              ``U8`` array         encrypted client hash
+16              ``U8`` array         MAC
+=============== ============ ======= ==================================
+
+After decrypting the client hash, the server should compare the
+received client hash with the one it computes itself. Vice versa.
+
+The server sends the subtype to let client know what credentials are
+needed.
+
+=============== ============ ======= ==================================
+No. of bytes    Type         Value   Description
+=============== ============ ======= ==================================
+2               ``U16``      1       length of subtype
+1               ``U8`` array         encrypted subtype
+16              ``U8`` array         MAC
+=============== ============ ======= ==================================
+
+If the subtype is 1, both username and password are needed. If the
+subtype is 2, only password is needed. Other values are invalid.
+
+The client sends the login credentials.
+
+===================== ============ ====================================
+No. of bytes          Type         Description
+===================== ============ ====================================
+2                     ``U16``      *length-crendentials*
+*length-crendentials* ``U8`` array encrypted crendentials
+16                    ``U8`` array MAC
+===================== ============ ====================================
+
+The plaintext message of the credentials is:
+
+==================== ============ ====================================
+No. of bytes          Type         Description
+==================== ============ ====================================
+1                    ``U8``       *length-username* (is 0 if subtype=2)
+*length-username*    ``U8`` array username (can be empty)
+1                    ``U8``       *length-password*
+*length-password*    ``U8`` array password
+==================== ============ ====================================
+
+The username and password should be UTF-8 encoded.
+
+After that the server continues with the encrypted SecurityResult
+message.
+
+Note that an RA2 encrypted message is not necessarily a single RFB
+message, vice versa. That is to say the RA2 encryption layer is an
+independent layer between the TCP layer and the RFB layer, which is
+similar to the function of TLS.
+
+RSA-AES Unencrypted Security Type
+---------------------------------
+The RA2ne security type is identical to the RA2 security type (RSA-AES
+Security Type), except that only the security handshake is
+encrypted. The SecurityResult message and all following data remains
+unencrypted.
+
+RSA-AES Two-step Security Type
+------------------------------
+The RA2r security type is identical to the RA2 security type (RSA-AES
+Security Type) , except that after the server receives the credentials
+the server and client will have another round of key derivation by
+sending two new random numbers and generate a new pair of session keys
+for the following encryption. Different from the first round, the
+random numbers are encrypted by AES-EAX instead of by RSA. Also, the
+16-byte message index will be reset to zero.
+
+RSA-AES-256 Security Type
+-------------------------
+The RA2_256 security type is identical to the RA2 security type
+(RSA-AES Security Type), except that::
+
+    ClientSessionKey = SHA256(ServerRandom || ClientRandom)
+    ServerSessionKey = SHA256(ClientRandom || ServerRandom)
+    ServerHash = SHA256(ServerPublicKey || ClientPublicKey)
+    ClientHash = SHA256(ClientPublicKey || ServerPublicKey)
+
+RSA-AES-256 Unencrypted Security Type
+-------------------------------------
+The RA2ne_256 security type is identical to the RA2ne security type
+(RSA-AES Unencrypted Security Type), except that::
+
+    ClientSessionKey = SHA256(ServerRandom || ClientRandom)
+    ServerSessionKey = SHA256(ClientRandom || ServerRandom)
+    ServerHash = SHA256(ServerPublicKey || ClientPublicKey)
+    ClientHash = SHA256(ClientPublicKey || ServerPublicKey)
+
+
+RSA-AES-256 Two-step Security Type
+----------------------------------
+The RA2r_256 security type is identical to the RA2r security type
+(RSA-AES Two-step Security Type),
+except that::
+
+    ClientSessionKey = SHA256(ServerRandom || ClientRandom)
+    ServerSessionKey = SHA256(ClientRandom || ServerRandom)
+    ServerHash = SHA256(ServerPublicKey || ClientPublicKey)
+    ClientHash = SHA256(ClientPublicKey || ServerPublicKey)
 
 xvp Authentication
 ------------------
