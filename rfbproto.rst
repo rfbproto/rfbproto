@@ -379,6 +379,7 @@ Number      Name
 19          `VeNCrypt`_
 22          `xvp Authentication`_
 30          `Diffie-Hellman Authentication`_
+113         `MSLogonII Authentication`_
 129         `RSA-AES-256 Security Type`_
 130         `RSA-AES-256 Unencrypted Security Type`_
 133         `RSA-AES-256 Two-step Security Type`_
@@ -1093,6 +1094,48 @@ No. of bytes      Type          Description
 
 After that the server verifies if supplied credentials are correct and
 continues with the `SecurityResult`_ message.
+
+MSLogonII Authentication
+------------------------
+
+The MSLogonII security type allows authentication using username and
+password. It also uses Diffie-Hellman key exchange. However, the key
+size is fixed at 64 bit, which can be cracked by modern computers
+immediately, so it should not be used to prevent eavesdropping.
+
+After the MSLogonII security type is selected the server sends the
+following Diffie-Hellman parameters:
+
+================= ============= ========================================
+No. of bytes      Type          Description
+================= ============= ========================================
+8                 ``U8`` array  *generator*
+8                 ``U8`` array  *modulus*
+8                 ``U8`` array  *public-value*
+================= ============= ========================================
+
+The client can then generate a shared secret from these values using the
+Diffie-Hellman algorithm. The client then uses the shared secret as the
+key for DES encryption.
+
+The client should encrypt the username and password using DES in CBC
+mode, respectively. Both fields should be encoded using UTF-8, NULL
+terminated and padded with random data so the length of each is 256
+and 64 bytes respectively. The DES algorithm used here is the same as
+the one for VNC authentication, which uses the reverse bit order
+compared with most implementations. The shared secret is also used as
+the IV.
+
+The client then sends the encrypted data, and its public value to the
+server.
+
+================= ============= ========================================
+No. of bytes      Type          Description
+================= ============= ========================================
+8                 ``U8`` array  *public-value*
+256               ``U8`` array  *encrypted-username*
+64                ``U8`` array  *encrypted-password*
+================= ============= ========================================
 
 Initialisation Messages
 +++++++++++++++++++++++
