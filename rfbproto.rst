@@ -378,6 +378,7 @@ Number      Name
 16          `Tight Security Type`_
 19          `VeNCrypt`_
 22          `xvp Authentication`_
+25          `Virtual Host`_
 30          `Diffie-Hellman Authentication`_
 113         `MSLogonII Authentication`_
 129         `RSA-AES-256 Security Type`_
@@ -1054,6 +1055,55 @@ Both *username* and *target* should be encoded using UTF-8.
 
 After that the communication continues as if `VNC Authentication`_ had
 been selected.
+
+Virtual Host
+-----------------------------
+
+The Virtual Host security type can be used as a signal for reverse proxies
+to identify the destination VNC server.
+
+Similar technology is being used in HTTP protocol.
+In situations when a single entrypoint must encapsulate multiple VNC servers,
+the client can send the destination domain name in this option.
+
+This security-type is defined only for the 3.8 protocol version as there is no
+possibility to know the real server version before proxy<->client handshake.
+
+If proxy server requires VHost information it can send the only ``Virtual Host``
+security type to a client. If client doesn't support this security type then
+the connection will be closed.
+
+To identify the target domain name client sends then a message with it:
+
+==================== ============= =====================================
+No. of bytes         Type          Description
+==================== ============= =====================================
+2                    ``U16``       *domain-name-length*
+*domain-name-length* ``U8`` array  *domain-name*
+==================== ============= =====================================
+
+To craft this message, the client can ask the user about the target
+domain name or use the socket's destination address and port. If client
+was instructed to connect to a domain name instead of an IP address it must
+use the domain name. If destination is specified as an IP-address client can
+use the IP-address in the last resort. Along with domain name port can be
+specified in format ``domain:port``.
+
+Parsing rules of this field are not defined by this document. Using this
+information is implementation specific for proxy servers.
+
+If the specified domain name is unknown, the proxy server continues with
+`SecurityResult`_ message of value ``failed``.
+
+If proxy server can proceed with a specified domain name it will establish
+a new connection to the target VNC server and exchange with `ProtocolVersion`_
+messages. At this point the proxy server must become a transparent TCP-proxy
+and never interfere with traffic in the established connection. So the next
+message that client receives must be a new security-types list but from server
+and without `Virtual Host` security-type at this time.
+
+From this point communication continues normally between the server and
+the client as described in the `Security`_ chapter.
 
 Diffie-Hellman Authentication
 -----------------------------
