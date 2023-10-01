@@ -2722,6 +2722,8 @@ Number       Name
 -314         `Cursor With Alpha Pseudo-encoding`_
 -412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
 -763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
+-1000        `Presentation time Pseudo-encoding`
+-1001        `NTP Pseudo-encoding`
 0x574d5664   `VMware Cursor Pseudo-encoding`_
 0x574d5665   `VMware Cursor State Pseudo-encoding`_
 0x574d5666   `VMware Cursor Position Pseudo-encoding`_
@@ -4489,3 +4491,72 @@ be set.
     4               ``U32``                         *size*
     *size*          ``U8`` array                    *data*
     =============== ==================== ========== ===================
+
+Presentation Time Pseudo-Encoding
+---------------------------------------
+
+A client that requests the Presentation Time pseudo-encoding is
+declaring that it wants to receive presentation timestamps with each
+frame.
+
+If the server supports presentation time, each frame from the server
+must contain a PTS pseudo-rectangle which contains the time at which
+the frame was presented to the user in micro seconds.
+
+The contents of the pseudo-rectangle are:
+
+=============== =================== ===================================
+No. of bytes    Type                Description
+=============== =================== ===================================
+4               ``U32``             *high bits*
+4               ``U32``             *low bits*
+=============== =================== ===================================
+
+NTP Pseudo-Encoding
+---------------------------------------
+
+A client that requests the NTP pseudo-encoding is declaring that it
+supports time synchonisation with the server akin to NTP. To indicate
+that the server also supports NTP messages, the server must send an
+empty rectangle with the encoding type set to -1001.
+
+This extension is useful in combination with the Presentation Time
+pseudo-encoding. It can be used to estimate jitter and to translate
+timestamps originating from the server to the time domain of the
+client. The client can then attempt to render frames using the original
+time interval, smoothing out frame presentation on jittery networks.
+
+NTP events have the event type 160 and they have the same size and
+structure, regardless of whether they come from the server or the
+client.
+
+All timestamps are in micro seconds.
+
+=============== =================== ===================================
+No. of bytes    Type                Description
+=============== =================== ===================================
+1               ``U8``              *type*
+3               ``U8``              *padding*
+4               ``U32``             *t0*
+4               ``U32``             *t1*
+4               ``U32``             *t2*
+4               ``U32``             *t3*
+=============== =================== ===================================
+
+To find out the server's clock relative to the client's, the client
+must periodically ping the server with an NTP message. The client must
+set `t0` to its own current time and all other timestamps should be set
+to zero.
+
+When the server receives the message, it must set `t1` to the time at
+which the message was received using its own current time. The server
+should the same message that it received to be transmitted back to the
+client. Rigth before the message is transmitted to the network, `t2`
+should be set to the current time.
+
+Manual output queuing with a minimal OS-side send queue size is
+recommended to minimise error due ot HOL blocking.
+
+After the client receives the message with `t1` and `t2`, it should set
+`t3` and send the message back to the server. This way, both parties
+can know the time difference.
