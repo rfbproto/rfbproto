@@ -1643,6 +1643,12 @@ used:
   viewers, servers should also recognise ISO Left Tab as meaning a
   shifted Tab.
 
+- Unicode characters can be represented using Unicode keysyms, which
+  occupy the range `0x01000100`` to `0x0110FFFF`` and represent the ISO
+  10646 / Unicode characters `U+0100` to `U+10FFFF`, respectively. The
+  numeric value of a Unicode keysym is the Unicode position of the
+  corresponding character plus `0x01000000`.
+
 Note that extensions such as `QEMU Extended Key Event Message`_ provide
 alternative behaviours for keyboard events that do not follow what is
 described here.
