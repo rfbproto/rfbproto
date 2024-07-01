@@ -1674,6 +1674,25 @@ The `QEMU Pointer Motion Change Pseudo-encoding`_ allows for the
 negotiation of an alternative interpretation for the *x-position*
 and *y-position* fields, as relative deltas.
 
+The `ExtendedMouseButtons Pseudo-encoding`_ extends the mouse button
+functionality by adding an additional byte for button states. When
+this pseudo-encoding is enabled, bit 7 in the *button-mask* can be set
+to 1. Clients that don't use this pseudo-encoding must set the marker
+bit to 0.
+
+========= =============================================================
+Bit       Description
+========= =============================================================
+0         Left
+1         Middle
+2         Right
+3         Wheel-up
+4         Wheel-down
+5         Wheel-left
+6         Wheel-right
+7         ExtendedMouseButton Marker
+========= =============================================================
+
 ClientCutText
 -------------
 
@@ -2720,6 +2739,7 @@ Number       Name
 -312         `Fence Pseudo-encoding`_
 -313         `ContinuousUpdates Pseudo-encoding`_
 -314         `Cursor With Alpha Pseudo-encoding`_
+-316         `ExtendedMouseButtons Pseudo-encoding`_
 -412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
 -763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
 0x574d5664   `VMware Cursor Pseudo-encoding`_
@@ -4087,6 +4107,74 @@ supported. However some encodings may be unsuitable as they cannot
 include the extra bits that are used for alpha. Also note that the data
 used for the cursor shares state with other rects. E.g. the zlib stream
 for a ZRLE encoding is the same as for data rects.
+
+ExtendedMouseButtons Pseudo-encoding
+------------------------------------
+
+A client which requests the *ExtendedMouseButtons* pseudo-encoding is
+declaring that it is capable of handling additional mouse buttons beyond
+the standard three buttons (left, middle, and right). If the server
+supports this pseudo-encoding, it will respond by sending an empty
+pseudo-rectangle with the matching pseudo-encoding. After receiving this
+notification, clients may start sending `PointerEvent`_ messages with an
+an additional *extended-button-mask*.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               5          *message-type*
+1               ``U8``                          *button-mask*
+2               ``U16``                         *x-position*
+2               ``U16``                         *y-position*
+1               ``U8``                          *extended-button-mask*
+=============== ==================== ========== =======================
+
+While a normal `PointerEvent`_ uses 7 of the 8 available bits, the
+*ExtendedMouseButtons* pseudo-encoding provides support for 8 additional
+bits, for a total of 15 buttons. To allow for 8 additional bits of data
+being transmitted using the same `PointerEvent`_  message, a marker bit
+is used to indicate that there is an extra byte of data in the
+`PointerEvent`_  message. The marker bit is the 7th bit of
+*button-mask*, where a value of one means that there is an additional
+byte of data to read, and a value of zero means that it is a normal
+`PointerEvent`_ message.
+
+The `PointerEvent`_  message is encoded by first setting the 7th bit of
+the *button-mask* to one. The *button-mask* will contain the button mask
+for the 7 buttons defined in a normal PointerEvent`_  message, as well
+as the marker bit. The rest of the message is sent as a normal
+`PointerEvent`_ message. After sending the *y-position*, an additional
+byte, the *extended-button-mask*, is sent containing a one byte button
+mask.
+
+When decoding the `PointerEvent`_ message with this pseudo-encoding
+enabled, it can initially be decoded as a normal `PointerEvent`_
+message. After decoding the message, the 7th bit in the *button-mask* is
+used to determine whether an additional byte should be read or not. If
+the marker bit is set to one, another byte is read, which contains the
+*extended-button-mask*. The last step in decoding is to set the 7th bit
+of the *button-mask* is to zero.
+
+If the marker bit in  the *button-mask* is set to zero, the message is a
+normal `PointerEvent`_ message and, no further action is needed.
+
+Currently, bit 0 in the *extended-button-mask* corresponds to the
+forward mouse button, and bit 1 corresponds to the back mouse button.
+The remaining 6 bits are reserved and must be set to 0 by the client and
+ignored by the server.
+
+========= =============================================================
+Bit       Description
+========= =============================================================
+0         Forward
+1         Back
+2         Reserved
+3         Reserved
+4         Reserved
+5         Reserved
+6         Reserved
+7         Reserved
+========= =============================================================
 
 JPEG Fine-Grained Quality Level Pseudo-encoding
 -----------------------------------------------
