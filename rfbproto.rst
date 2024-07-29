@@ -3526,6 +3526,11 @@ into multiple packets. The *data* field must always contain 0 or more
 whole frames. The client must first decode all the received frames
 in a single message, and then display the result.
 
+The server may send frames that are larger than the associated rectangle
+in either dimension, but frames should never be smaller. The client
+must crop oversized frames to fit the rectangle by trimming off the
+bottom and/or right side.
+
 The server must start sending *data* for the new context from I-frame
 to provide correct decoding for the client side.
 
