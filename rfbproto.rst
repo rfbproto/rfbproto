@@ -3534,6 +3534,17 @@ bottom and/or right side.
 The server must start sending *data* for the new context from I-frame
 to provide correct decoding for the client side.
 
+The server should encode colour space into the H.264 bit stream.
+Specifically, the following parameters should be specified in the SPS:
+
+- video_full_range_flag
+
+- colour_primaries
+
+- transfer_characteristics
+
+- matrix_coefficients
+
 The client can handle decoding errors at its discretion. However,
 the recommended processing method is to ignore and wait for the correct
 frame from the server side.
