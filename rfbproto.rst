@@ -2969,6 +2969,7 @@ Number       Name
 -312         `Fence Pseudo-encoding`_
 -313         `ContinuousUpdates Pseudo-encoding`_
 -314         `Cursor With Alpha Pseudo-encoding`_
+-317         `Tight Encoding Without Zlib Pseudo-encoding`_
 -412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
 -763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
 0x574d5664   `VMware Cursor Pseudo-encoding`_
@@ -3347,20 +3348,27 @@ Bits            Binary value        Description
 =============== =================== ===================================
 
 Otherwise, if the bit 7 of *compression-control* is set to 1, then the
-compression method is either **FillCompression** or
-**JpegCompression**, depending on other bits of the same byte:
+compression method is either **FillCompression**, **JpegCompression**,
+or **BasicCompression Without Zlib**, depending on other bits of the
+same byte:
 
 =============== =================== ===================================
 Bits            Binary value        Description
 =============== =================== ===================================
 7-4             1000                **FillCompression**
 ..              1001                **JpegCompression**
+..              1010                **BasicCompression Without Zlib**
+..              1110                **BasicCompression Without Zlib**,
+                                    *read-filter-id*
 ..              any other           Invalid
 =============== =================== ===================================
 
 Note: **JpegCompression** may only be used when *bits-per-pixel* is
 either 16 or 32 and the client has advertized a quality level using the
 `JPEG Quality Level Pseudo-encoding`_.
+
+Note: **BasicCompression Without Zlib** may only be used if the client
+has advertised the `Tight Encoding Without Zlib Pseudo-encoding`_.
 
 The Tight encoding makes use of a new type ``TPIXEL`` (Tight pixel).
 This is the same as a ``PIXEL`` for the agreed pixel format, except
@@ -3496,6 +3504,12 @@ compression method.
     *compression-control* byte are set to 1. Note that the decoder must
     reset the indicated zlib streams even if the compression type is
     **FillCompression** or **JpegCompression**.
+
+**BasicCompression Without Zlib**
+    **BasicCompression Without Zlib** is identical to
+    **BasicCompression** except that all data is sent as is,
+    uncompressed.  This is useful with server-area networks or loopback
+    connections in which minimizing CPU overhead is desirable.
 
 zlibhex Encoding
 ----------------
@@ -4352,6 +4366,14 @@ supported. However some encodings may be unsuitable as they cannot
 include the extra bits that are used for alpha. Also note that the data
 used for the cursor shares state with other rects. E.g. the zlib stream
 for a ZRLE encoding is the same as for data rects.
+
+Tight Encoding Without Zlib Pseudo-encoding
+-------------------------------------------
+
+A client which requests the *Tight Encoding Without Zlib*
+pseudo-encoding is declaring that it is capable of decoding a Tight
+subrectangle encoded with the **BasicCompression Without Zlib**
+compression method.  (Refer to `Tight Encoding`_.)
 
 JPEG Fine-Grained Quality Level Pseudo-encoding
 -----------------------------------------------
