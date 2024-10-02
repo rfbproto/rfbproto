@@ -1967,6 +1967,76 @@ The `QEMU Pointer Motion Change Pseudo-encoding`_ allows for the
 negotiation of an alternative interpretation for the *x-position*
 and *y-position* fields, as relative deltas.
 
+The `ExtendedMouseButtons Pseudo-encoding`_ extends the mouse button
+functionality by adding an additional byte for button states. When
+this extension is enabled, the highest bit in the *button-mask*
+can be set to one, which marks the `PointerEvent`_ message as an
+extended `PointerEvent`_ message and replaces bit used for the
+back button.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               5          *message-type*
+1               ``U8``                          *button-mask*
+2               ``U16``                         *x-position*
+2               ``U16``                         *y-position*
+1               ``U8``                          *extended-buttons-mask*
+=============== ==================== ========== =======================
+
+The extended `PointerEvent`_ message provides support for 7 additional
+buttons, giving a total of 15 buttons. To allow additional data being
+transmitted using the same `PointerEvent`_ message, a marker bit is
+used to indicate that there is an extra byte of data in the
+`PointerEvent`_ message. The marker bit is the highest bit of the
+*button-mask*.
+
+An extended `PointerEvent`_ adds an *extended-buttons-mask* to the
+`PointerEvent`_ message, containing the button state for additional
+mouse buttons. The *button-mask* will contain the button state for
+buttons 1-7 defined in a normal `PointerEvent`_ message.
+
+Clients that support extended `PointerEvent`_ messages must always set
+the marker bit to zero until the server indicates that it also supports
+extended `PointerEvent`_ messages. Once the server has indicated that
+extended `PointerEvent`_ messages are supported, clients may choose
+between sending normal and extended `PointerEvent`_ messages as needed.
+
+Servers that support this extension must assume that incoming
+`PointerEvent`_ messages are not extended `PointerEvent`_ messages until
+the client indicates that it also supports extended `PointerEvent`_
+messages. From then on forward, the highest bit in the *button-mask* is
+used to indicate whether the message is a normal or an extended
+`PointerEvent`_ message. If an incoming message is a normal
+`PointerEvent`_ message, all buttons represented by the
+*extended-buttons-mask* must be treated as not being pressed.
+
+The bits in *extended-buttons-mask* represent the following buttons
+(see [#extendedmouse]_ for additional context):
+
+========= =============================================================
+Bit       Description
+========= =============================================================
+0         Back
+1         Forward
+2         Reserved
+3         Reserved
+4         Reserved
+5         Reserved
+6         Reserved
+7         Reserved
+========= =============================================================
+
+Note that the back button in *extended-buttons-mask* represents the same
+back button in the *button-mask* for a normal `PointerEvent`_ message.
+
+..  [#extendedmouse] Historically, there has been confusion regarding
+                     which mouse buttons are meant to represent back and
+                     forward. Typically, these buttons are located on
+                     the side of a mouse and are used to navigate back
+                     and forward in applications such as web browsers
+                     and file explorers.
+
 ClientCutText
 -------------
 
@@ -3013,6 +3083,7 @@ Number       Name
 -312         `Fence Pseudo-encoding`_
 -313         `ContinuousUpdates Pseudo-encoding`_
 -314         `Cursor With Alpha Pseudo-encoding`_
+-316         `ExtendedMouseButtons Pseudo-encoding`_
 -317         `Tight Encoding Without Zlib Pseudo-encoding`_
 -412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
 -763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
@@ -4410,6 +4481,21 @@ supported. However some encodings may be unsuitable as they cannot
 include the extra bits that are used for alpha. Also note that the data
 used for the cursor shares state with other rects. E.g. the zlib stream
 for a ZRLE encoding is the same as for data rects.
+
+ExtendedMouseButtons Pseudo-encoding
+------------------------------------
+
+A client which requests the *ExtendedMouseButtons* pseudo-encoding is
+declaring that it is capable of handling additional mouse buttons.
+Clients can notify a server that it supports *ExtendedMouseButtons* by
+sending a `SetEncodings`_ message with the *ExtendedMouseButtons*
+pseudo-encoding.
+
+Servers that support this pseudo-encoding will respond to a client's
+request as soon as possible and send an empty pseudo-rectangle with the
+matching pseudo-encoding. When a client has received the matching
+response from the server, it may chose to start sending extended
+`PointerEvent`_ messages.
 
 Tight Encoding Without Zlib Pseudo-encoding
 -------------------------------------------
