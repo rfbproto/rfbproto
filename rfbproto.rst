@@ -1937,7 +1937,22 @@ On a conventional mouse, buttons 1, 2 and 3 correspond to the left,
 middle and right buttons on the mouse. On a wheel mouse, each step of
 the wheel is represented by a press and release of a certain button.
 Button 4 means up, button 5 means down, button 6 means left and
-button 7 means right.
+button 7 means right. Button 8 corresponds to the back button, commonly
+found on the side of mice and is used to navigate backwards in certain
+applications.
+
+========= =============================================================
+Bit       Description
+========= =============================================================
+0         Left
+1         Middle
+2         Right
+3         Scroll up
+4         Scroll down
+5         Scroll left
+6         Scroll right
+7         Back
+========= =============================================================
 
 =============== ==================== ========== =======================
 No. of bytes    Type                 [Value]    Description
