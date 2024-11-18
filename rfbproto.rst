@@ -1656,6 +1656,7 @@ Number      Name
 127         VMware
 128         Car Connectivity
 150         `EnableContinuousUpdates`_
+245         `Encoded Audio Client Message`_
 248         `ClientFence`_
 249         OLIVE Call Control
 250         `xvp Client Message`_
@@ -2097,6 +2098,104 @@ The server must ignore all incremental update requests
 long as continuous updates are active. Non-incremental update requests
 must however be honored, even if the area in such a request does not
 overlap the area specified for continuous updates.
+
+Encoded Audio Client Message
+---------------------------
+
+This message may only be sent if the client has previously received a
+``FrameBufferUpdate`` that confirms support for the intended
+message-type.  Every `Encoded Audio Client Message`_ begins with a
+standard header
+
+============= ======= ========= ======================================
+No. of bytes  Type    [Value]   Description
+============= ======= ========= ======================================
+1             ``U8``  245       *message-type*
+1             ``U8``            *submessage-type*
+2             ``U16``           *payload-length*
+============= ======= ========= ======================================
+
+This header is then followed by arbitrary data of length
+*payload-length*, and whose format is determined by the
+*submessage-type*. Possible values for *submessage-type* and their
+associated minimum versions are
+
+=============== =============== ================================================
+Submessage Type Minimum version Description
+=============== =============== ================================================
+0               0               `Encoded Audio Client Set Encoder State`_
+1               0               `Encoded Audio Client Enable Audio Streaming`_
+=============== =============== ================================================
+
+Encoded Audio Client Set Encoder State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This submessage allows the client to request the server to start audio
+capture with the provided configuration, reconfigure the codec, and
+stop audio capture.
+
+============= ======= ========= ======================================
+No. of bytes  Type    [Value]   Description
+============= ======= ========= ======================================
+1             ``U8``  245       *message-type*
+1             ``U8``  0         *submessage-type*
+2             ``U16`` 8         *payload-length*
+2             ``U16``           *client-version*
+1             ``U8``            *enabled*
+1             ``U8``            *channels*
+2             ``U16``           *codec*
+2             ``U16``           *kbytes-per-sec*
+============= ======= ========= ======================================
+
+After invoking this operation, the client will receive a `Encoded Audio
+Server Start Encoder Message`_ with the result of the operation. Future
+`Encoded Audio Client Set Encoder State`_ messages can be sent after the
+encoder parameters have been set to disable the encoder, or to
+reconfigure the encoder. The *client-version* MUST be at most the maximum
+version that the server supports.
+
+Valid values for the *enabled* field are 0, which disables/stops the
+audio encoder, and 1, which starts the audio encoder. Valid values for
+the *channels* field are 1 (Mono audio) and 2 (Stereo audio). Valid
+values for the *codec* field are the ones sent by the server in the
+`Encoded Audio Pseudo-encoding`_ pseudo-rectangle. Valid values for the
+*kbytes-per-sec* field are codec-dependent.  The Opus codec achieves
+good performance with 32, whereas the MP3 codec might require 128 for a
+comparable experience.
+
+Encoded Audio Client Enable Audio Streaming Message
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This submessage allows the client to request the server send audio
+frames continuously. The length of an audio frame is codec-dependent,
+but is typically between 5 and 40 milliseconds.  Each frame is encoded
+with the parameters chosen by the `Encoded Audio Client Set Encoder
+State Message`_.  The client MUST send a `Encoded Audio Client Set
+Encoder State Message`_ and have received acknowledgement from the
+server that the chosen parameters are valid prior to sending this
+message.
+
+============= ======= ========= ======================================
+No. of bytes  Type    [Value]   Description
+============= ======= ========= ======================================
+1             ``U8``  245       *message-type*
+1             ``U8``  1         *submessage-type*
+2             ``U16`` 0         *payload-length*
+============= ======= ========= ======================================
+
+After invoking this operation, the client will receive a `Encoded Audio
+Server Enable Audio Streaming Message`_ with the result of the
+operation. If the operation was successful, that message will be
+followed by `Encoded Audio Server Frame Response Message`_ with and
+encoded audio frame in the corresponding container format.
+
+Once audio frames start being continuously sent, this can be stopped by
+sending a `Encoded Audio Client Set Encoder State Message`_ with the
+*enabled* field set to `0`. Due to inherent race conditions in the
+protocol, after disabling the encoder, the client may still receive
+further `Encoded Audio Server Frame Response Message`_, but once the
+server acknowledges the receipt of the `Encoded Audio Client Start
+Encoder Message`_, no further audio frames will be sent.
 
 ClientFence
 -----------
@@ -2732,6 +2831,7 @@ Number      Name
 128         Car Connectivity
 150         `EndOfContinuousUpdates`_
 173         ServerState
+245         `Encoded Audio Server Message`_
 248         `ServerFence`_
 249         OLIVE Call Control
 250         `xvp Server Message`_
@@ -2864,6 +2964,142 @@ No. of bytes    Type                 [Value]    Description
 =============== ==================== ========== =======================
 1               ``U8``               150        *message-type*
 =============== ==================== ========== =======================
+
+Encoded Audio Server Message
+----------------------------
+
+This message may only be sent if the client has previously sent a
+`Encoded Audio Client Message`_ that confirms support for the intended
+*message-type*. Every ``Encoded Audio Server Message`` begins with a
+standard header
+
+============= ======= ========= =======================================
+No. of bytes  Type    [Value]   Description
+============= ======= ========= =======================================
+1             ``U8``  245       *message-type*
+1             ``U8``            *submessage-type*
+2             ``U16``           *payload-length*
+============= ======= ========= =======================================
+
+This header is then followed by arbitrary data of length
+*payload-length*, and whose format is determined by the
+*submessage-type*. Possible values for *submessage-type* and their
+associated minimum versions are
+
+================ ================= ========================================================
+Submessage Type  Minimum version   Description
+================ ================= ========================================================
+0                0                 `Encoded Audio Server Set Encoder State Message`_
+1                0                 `Encoded Audio Server Frame Response Message`_
+2                0                 `Encoded Audio Server Enable Audio Streaming Message`_
+================ ================= ========================================================
+
+Encoded Audio Server Set Encoder State Message
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This submessage is a response to the `Encoded Audio Client Set Encoder
+State Message`_, and acknowledges the receipt and/or support for the
+requested configuration
+
+============= ======= ========= =======================================
+No. of bytes  Type    [Value]   Description
+============= ======= ========= =======================================
+1             ``U8``  245       *message-type*
+1             ``U8``  0         *submessage-type*
+2             ``U16`` 1         *payload-length*
+1             ``U8``            *enabled*
+============= ======= ========= =======================================
+
+If the parameters in the `Encoded Audio Client Set Encoder State
+Message`_ were valid and the server was able to successfully start an
+audio capture session, the value of *enabled* will be 1. Otherwise it
+will be 0.
+
+After receiveing this message with *enabled* set to 1, the client can
+send other `Encoded Audio Client Message`_ messages. Otherwise the
+encoder will be stopped and the client SHOULD NOT send any other
+`Encoded Audio Client Message`_ messages, aside from a `Encoded Audio
+Client Set Encoder State Message`_ requesting for the encoder to be
+re-enabled.
+
+Encoded Audio Server Frame Response Message
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This submessage contains audio data for a single audio frame wrapped in
+the container format associated with it. The length of an audio frame is
+codec-dependent, but is typically between 5 and 40 milliseconds. The
+frame is encoded with the parameters chosen by the `Encoded Audio Client
+Set Encoder State Message`_ message. This is a response to the `Encoded
+Audio Client Enable Audio Streaming Message`_.
+
+=============== ============ ================== =======================
+No. of bytes    Type         [Value]            Description
+=============== ============ ================== =======================
+1               ``U8``       245                *message-type*
+1               ``U8``       1                  *submessage-type*
+2               ``U16``      4 + *data-length*  *payload-length*
+4               ``U32``                         *timestamp*
+*data-length*   ``U8`` array                    *data*
+=============== ============ ================== =======================
+
+The most significant bit of *timestamp* denotes whether the encoded
+audio frame is a keyframe or not. Keyframes MUST contain a
+start-of-stream header that allows clients to restart the stream from
+that point , which enables clients to use this information for seeking
+purposes. Servers SHOULD send keyframes every few seconds / minutes to
+allow clients to re-synchronize with the stream. The 31 least
+significant bits of *timestamp* contain the number of milliseconds from
+the first audio frame that was captured in the session since the
+`Encoded Audio Client Set Encoder State Message`_ was acknowledged by
+the server, using the system monotonic clock as reference. The timestamp
+is intended to aid the client synchronize when operating in a continuous
+updates mode.
+
+*data* SHOULD be a self-contained audio frame, and all the audio frames
+should be concatenable into a valid audio stream.  Furthermore, dropping
+of a non-keyframe due to backpressure SHOULD not cause the client's
+audio stream decoder to de-synchronize. Client implementations are
+expected to detect synchronization issues on their end and
+re-synchronization SHOULD be achievable by skipping frames or inserting
+silence frames. Client implementations are also responsible for
+maintaining sufficient buffering to handle network jitter. It is
+recommended to maintain a minimal buffer of at least three audio frames.
+
+Server implementations MAY rely on the fact that this message contains
+audio data for a single audio frame to implement a backpressure feedback
+loop, by counting how many messages of this type are waiting to be
+delivered through the transport layer to the client. Using this
+information, the server can decide to drop audio frames if a client lags
+behind too much, by consuming the audio frames from the audio source and
+not advancing the encoder state. This way, the stream can still be
+decoded by the client.
+
+Encoded Audio Server Enable Audio Streaming Message
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This submessage is a response to the `Encoded Audio Client Enable Audio
+Streaming Message`_, and acknowledges the receipt of it and signals the
+client that the server will send `Encoded Audio Server Frame Response
+Message`_ messages continuously.
+
+============= ======= ========= =======================================
+No. of bytes  Type    [Value]   Description
+============= ======= ========= =======================================
+1             ``U8``  245       _message-type_
+1             ``U8``  0         _submessage-type_
+2             ``U16`` 1         _payload-length_
+1             ``U8``            _enabled_
+============= ======= ========= =======================================
+
+*enabled* will be set to 1 when the stream of `Encoded Audio Server
+Frame Request Message`_ messages will start. *enabled* will be set to 0
+if client had not sent a `Encoded Audio Client Set Encoder State
+Message`_ beforehand, or if there was any other problem starting the
+stream. If there is an error at any future point, or if the client sent
+a `Encoded Audio Client Set Encoder State`_ with the *enabled* field set
+to 0, the server will send an additional `Encoded Audio Server Enable
+Audio Streaming Message`_ with *enabled* set to 0 after sending the last
+audio frame.
 
 ServerFence
 -----------
@@ -3087,6 +3323,7 @@ Number       Name
 -317         `Tight Encoding Without Zlib Pseudo-encoding`_
 -412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
 -763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
+0x52706C41   `Encoded Audio Pseudo-encoding`_
 0x574d5664   `VMware Cursor Pseudo-encoding`_
 0x574d5665   `VMware Cursor State Pseudo-encoding`_
 0x574d5666   `VMware Cursor Position Pseudo-encoding`_
@@ -4565,6 +4802,37 @@ The values for this pseudo-encoding are defined as follows:
 
 This pseudo-encoding was originally intended for use with JPEG-encoded
 subrectangles, but it could be used with other types of image encoding as well.
+
+Encoded Audio Pseudo-encoding
+----------------------------
+
+A client that supports this encoding is indicating that it is able to
+receive an encoded audio data stream. If a server wishes to send encoded
+audio data, it will send a pseudo-rectangle with the following contents
+in the first *FramebufferUpdate* message after the client sends a
+*SetEncodings* message.
+
+======================= ============= ================================
+No. of bytes            Type          Description
+======================= ============= ================================
+2                       ``U16``        *version*
+2                       ``U16``        *number-of-codecs*
+2 * *number-of-codecs*  ``U16`` array  *codecs*
+======================= ============= ================================
+
+The supported codecs are as follow:
+
+====== ===============================================================
+Codec  Description
+====== ===============================================================
+0      Opus codec, WebM container
+1      MP3 codec, MPEG-1 container
+====== ===============================================================
+
+After receiving this notification, clients may optionally use the
+`Encoded Audio Client Message`_. The server will specify the maximum
+version it supports, and clients can use features from that version or
+any older version.
 
 VMware Cursor Pseudo-encoding
 -----------------------------
