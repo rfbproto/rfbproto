@@ -4722,6 +4722,12 @@ ServerInitialisation header to facilitate client implementations.
 
 The new pixel format takes effect immediately after the server sends
 a pseudo-rectangle with the VMware Display Mode Change pseudo-encoding.
+If *true-colour-flag* is zero (false) then this indicates that a
+"colour map" is to be used. The server can set any of the entries in
+the colour map using the *SetColourMapEntries* message
+(`SetColourMapEntries`_). Immediately after the client has sent this
+message the colour map is empty, even if entries had previously been
+set by the server.
 
 When the `ExtendedDesktopSize Pseudo-encoding`_ encoding is also
 supported by both the server and client, the server must send an
