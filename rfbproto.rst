@@ -4722,6 +4722,12 @@ ServerInitialisation header to facilitate client implementations.
 
 The new pixel format takes effect immediately after the server sends
 a pseudo-rectangle with the VMware Display Mode Change pseudo-encoding.
+If *true-colour-flag* is zero (false) then this indicates that a
+"colour map" is to be used. The server can set any of the entries in
+the colour map using the *SetColourMapEntries* message
+(`SetColourMapEntries`_). Immediately after the client has sent this
+message the colour map is empty, even if entries had previously been
+set by the server.
 
 When the `ExtendedDesktopSize Pseudo-encoding`_ encoding is also
 supported by both the server and client, the server must send an
@@ -4734,23 +4740,24 @@ Clients supporting multi-head layouts must wait for this following
 *ExtendedDesktopSize* rectangle to determine the new layout.
 
 The *width*  and *height* of the pseudo-rectangle specify the new width
-and height of the display. The rest of the format is described below:
+and height of the display, followed by ``PIXEL_FORMAT`` as described in
+`ServerInit`_:
 
-=============== ==================== =======================
-No. of bytes    Type                 Description
-=============== ==================== =======================
-1               ``U8``               *bits-per-sample*
-1               ``U8``               *depth*
-1               ``U8``               *color*
-1               ``U8``               *true-color*
-2               ``U16``              *max-red*
-2               ``U16``              *max-green*
-2               ``U16``              *max-blue*
-1               ``U8``               *red-shift*
-1               ``U8``               *green-shift*
-1               ``U8``               *blue-shift*
-3                                    padding
-=============== ==================== =======================
+=============== =================== ===================================
+No. of bytes    Type                Description
+=============== =================== ===================================
+1               ``U8``              *bits-per-pixel*
+1               ``U8``              *depth*
+1               ``U8``              *big-endian-flag*
+1               ``U8``              *true-colour-flag*
+2               ``U16``             *red-max*
+2               ``U16``             *green-max*
+2               ``U16``             *blue-max*
+1               ``U8``              *red-shift*
+1               ``U8``              *green-shift*
+1               ``U8``              *blue-shift*
+3                                   *padding*
+=============== =================== ===================================
 
 VMware Virtual Machine State Pseudo-encoding
 --------------------------------------------
