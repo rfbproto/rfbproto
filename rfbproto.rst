@@ -3149,7 +3149,7 @@ Number                      Name
 -225                        PointerPos
 -226 to -238                Tight options
 -241 to -246                Tight options
--262 to -272                QEMU
+-263 to -272                QEMU
 -273 to -304                VMware
 -306                        popa
 -310                        OLIVE Call Control
