@@ -4246,6 +4246,14 @@ data it will send an empty pseudo-rectangle with the matching
 pseudo-encoding. After receiving this notification, clients may
 optionally use the `QEMU Audio Client Message`_.
 
+QEMU LED State Pseudo-encoding
+------------------------------
+
+A client that supports this encoding is indicating that it can toggle
+the state of lock keys on the local keyboard. The server will send a
+pseudo-rectangle with the following contents when it wishes to update
+the client's state:
+
 QEMU Clipboard Status Pseudo-encoding
 -------------------------------------
 
@@ -4260,14 +4268,6 @@ guest is possible and to react to changes in its availability, for
 example by enabling or disabling clipboard related UI. It is independent
 of the `Extended Clipboard pseudo-encoding`_, which is still required to
 actually transfer clipboard data.
-
-QEMU LED State Pseudo-encoding
-------------------------------
-
-A client that supports this encoding is indicating that it can toggle
-the state of lock keys on the local keyboard. The server will send a
-pseudo-rectangle with the following contents when it wishes to update
-the client's state:
 
 =============== =================== ===================================
 No. of bytes    Type                Description
