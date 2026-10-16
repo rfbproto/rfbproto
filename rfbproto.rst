@@ -3041,7 +3041,7 @@ The *data-length* will be a multiple of (*sample-format* * *nchannels*)
 as requested by the client in an earlier `QEMU Audio Client Message`_.
 
 QEMU Clipboard Status Server Message
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This submessage informs the client whether a guest side clipboard peer
 is currently present. It is only sent to the clients that have
