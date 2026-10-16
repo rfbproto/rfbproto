@@ -2988,6 +2988,7 @@ determined by the *submessage-type*. Possible values for
 Submessage Type  Pseudo Encoding  Description
 ================ ================ ====================
 1                -259             Audio
+2                -262             Clipboard Status
 ================ ================ ====================
 
 Submessage type 0 is unused, since the
@@ -3039,6 +3040,35 @@ No. of bytes    Type                 [Value]    Description
 The *data-length* will be a multiple of (*sample-format* * *nchannels*)
 as requested by the client in an earlier `QEMU Audio Client Message`_.
 
+QEMU Clipboard Status Server Message
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This submessage informs the client whether a guest side clipboard peer
+is currently present. It is only sent to the clients that have
+requested the `QEMU Clipboard Status Pseudo-encoding`_.
+
+=============== ==================== ========== =======================
+No. of bytes    Type                 [Value]    Description
+=============== ==================== ========== =======================
+1               ``U8``               255        *message-type*
+1               ``U8``               2          *submessage-type*
+2               ``U16``                         *status*
+=============== ==================== ========== =======================
+
+The value of *status* has the following meaning:
+
+=============== =======================================================
+Value           Description
+=============== =======================================================
+0               No guest side clipboard peer is present.
+1               A guest side clipboard peer is present.
+2 - 255         Reserved
+=============== =======================================================
+
+The server sends this message once immediately after the client
+requests the pseudo-encoding, and again each time the availability of
+a guest side clipboard peer changes.
+
 Encodings
 +++++++++
 
@@ -3076,6 +3106,7 @@ Number       Name
 -258         `QEMU Extended Key Event Pseudo-encoding`_
 -259         `QEMU Audio Pseudo-encoding`_
 -261         `QEMU LED State Pseudo-encoding`_
+-262         `QEMU Clipboard Status Pseudo-encoding`_
 -305         `gii Pseudo-encoding`_
 -307         `DesktopName Pseudo-encoding`_
 -308         `ExtendedDesktopSize Pseudo-encoding`_
@@ -3118,7 +3149,7 @@ Number                      Name
 -225                        PointerPos
 -226 to -238                Tight options
 -241 to -246                Tight options
--262 to -272                QEMU
+-263 to -272                QEMU
 -273 to -304                VMware
 -306                        popa
 -310                        OLIVE Call Control
@@ -4222,6 +4253,21 @@ A client that supports this encoding is indicating that it can toggle
 the state of lock keys on the local keyboard. The server will send a
 pseudo-rectangle with the following contents when it wishes to update
 the client's state:
+
+QEMU Clipboard Status Pseudo-encoding
+-------------------------------------
+
+A client that supports this encoding is indicating that it wishes to be
+informed about the availability of a guest side clipboard peer. When
+this encoding is requested the server sends a
+`QEMU Clipboard Status Server Message`_ immediately, and again whenever
+the availability of a guest side clipboard peer changes.
+
+This allows the client to determine whether clipboard exchange with the
+guest is possible and to react to changes in its availability, for
+example by enabling or disabling clipboard related UI. It is independent
+of the `Extended Clipboard pseudo-encoding`_, which is still required to
+actually transfer clipboard data.
 
 =============== =================== ===================================
 No. of bytes    Type                Description
