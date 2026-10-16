@@ -3062,6 +3062,7 @@ Value           Description
 =============== =======================================================
 0               No guest side clipboard peer is present.
 1               A guest side clipboard peer is present.
+2 - 255         Reserved
 =============== =======================================================
 
 The server sends this message once immediately after the client
