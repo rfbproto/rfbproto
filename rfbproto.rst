@@ -3085,6 +3085,7 @@ Number       Name
 -314         `Cursor With Alpha Pseudo-encoding`_
 -316         `ExtendedMouseButtons Pseudo-encoding`_
 -317         `Tight Encoding Without Zlib Pseudo-encoding`_
+-318         `ClipboardAvailability Pseudo-encoding`_
 -412 to -512 `JPEG Fine-Grained Quality Level Pseudo-encoding`_
 -763 to -768 `JPEG Subsampling Level Pseudo-encoding`_
 0x574d5664   `VMware Cursor Pseudo-encoding`_
@@ -4512,6 +4513,43 @@ A client which requests the *Tight Encoding Without Zlib*
 pseudo-encoding is declaring that it is capable of decoding a Tight
 subrectangle encoded with the **BasicCompression Without Zlib**
 compression method.  (Refer to `Tight Encoding`_.)
+
+ClipboardAvailability Pseudo-encoding
+-------------------------------------
+
+A client which requests the *ClipboardAvailability* pseudo-encoding is
+declaring that it wishes to be informed whether the server is currently
+able to exchange clipboard data. On some servers this can change during
+the lifetime of a connection, for example when clipboard access depends
+on an agent running inside a virtual machine, or on a policy that can
+be toggled at runtime.
+
+The server reports the current availability by sending a
+pseudo-rectangle with the *ClipboardAvailability* pseudo-encoding in an
+update. The *x-position*, *y-position*, *width* and *height* must be
+zero. The pseudo-rectangle has the following contents:
+
+=============== =================== ===================================
+No. of bytes    Type                Description
+=============== =================== ===================================
+1               ``U8``              *availability*
+=============== =================== ===================================
+
+The value of *availability* has the following meaning:
+
+=============== =======================================================
+Value           Description
+=============== =======================================================
+0               Clipboard data cannot currently be exchanged.
+1               Clipboard data can currently be exchanged.
+=============== =======================================================
+
+All other values are reserved and should be ignored.
+
+The server must send this pseudo-rectangle in the first
+*FramebufferUpdate* after receiving a `SetEncodings`_ message that
+includes the *ClipboardAvailability* pseudo-encoding, and again
+whenever the clipboard availability changes.
 
 JPEG Fine-Grained Quality Level Pseudo-encoding
 -----------------------------------------------
