@@ -376,6 +376,7 @@ Number      Name
 6           `RSA-AES Unencrypted Security Type`_
 13          `RSA-AES Two-step Security Type`_
 16          `Tight Security Type`_
+17          `UltraVNC Security Type`_
 19          `VeNCrypt`_
 20          `SASL`_
 22          `xvp Authentication`_
@@ -394,7 +395,6 @@ Number      Name
 3-4         RealVNC
 7-12        RealVNC
 14-15       RealVNC
-17          Ultra
 18          TLS
 21          MD5 hash authentication
 23          Secure Tunnel
@@ -1414,6 +1414,98 @@ No. of bytes      Type          Description
 256               ``U8`` array  *encrypted-username*
 64                ``U8`` array  *encrypted-password*
 ================= ============= ========================================
+
+UltraVNC Security Type
+----------------------
+
+Security type 17 is not an authentication method. Selecting it starts a
+second security handshake: the server sends a list of security types of
+its own, and the client picks one of those instead.
+
+Everything in this section was observed from a running UltraVNC server.
+The implementation was not consulted, so the field names below are
+descriptive rather than official, and the first four bytes are not
+explained.
+
+Once the client has selected security type 17, the server sends:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+4               ``U32``                         *prefix*
+1               ``U8``                          *number-of-types*
+=============== =============================== =======================
+
+followed by *number-of-types* repetitions of the following:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+1               ``U8``                          *security-type*
+=============== =============================== =======================
+
+The *prefix* was ``0xFFFFFFFF`` in every exchange seen. It may be a
+sentinel, a version, or a count of a structure that is always empty. The
+`Tight Security Type`_ opens with a *number-of-tunnels*, so the last of
+those would not be unusual. Treating the field as four opaque bytes
+works.
+
+The client then replies with one *security-type* from that list:
+
+=============== =============================== =======================
+No. of bytes    Type                            Description
+=============== =============================== =======================
+1               ``U8``                          *security-type*
+=============== =============================== =======================
+
+From there the exchange is whatever the chosen security type specifies.
+Answering 2 produced the usual 16 byte `VNC Authentication`_ challenge.
+
+Answering a number the server had not listed produced no reply at all,
+rather than a *SecurityResult* of failed. A client should select only
+from the list it was sent.
+
+The nested list follows the server's configuration. Here is the same
+server before and after Windows authentication was enabled on it:
+
+=============================== =======================================
+Server configuration            Bytes sent after 17 was selected
+=============================== =======================================
+VNC password only               ``ff ff ff ff 01 02``
+MS-Logon II enabled             ``ff ff ff ff 02 76 71``
+=============================== =======================================
+
+The first offers `VNC Authentication`_ (2) alone. The second offers
+``0x76`` (118) and ``0x71`` (113, `MSLogonII Authentication`_), and VNC
+authentication has dropped out of it. So the nested list carries the
+UltraVNC specific methods rather than repeating the standard ones.
+
+A server that offers security type 17 has been seen to offer the same
+methods at the top level as well, so a client that does not implement
+this handshake is not necessarily excluded.
+
+Other numbers seen in use
+-------------------------
+
+These numbers were seen being offered by UltraVNC servers. They are
+recorded because an implementer will encounter them, not because their
+handshakes are understood.
+
+======= ===============================================================
+Number  Observation
+======= ===============================================================
+117     Offered by every UltraVNC server tried, in every configuration
+        tested, including with authentication disabled. Selecting it
+        returns a *SecurityResult* of failed with the reason
+        "authentication rejected", immediately and with no handshake.
+        Its purpose was not determined.
+118     Offered only when MS-Logon is enabled together with the "New
+        MS-Logon" option. Selecting it returns 32 bytes of high entropy
+        data. That is the length of an X25519 public key, and the
+        UltraVNC 1.8.x release notes describe an "MS-Logon III" using
+        "X25519 ECDH + AES-256-GCM via libsodium". The two are
+        consistent, but this was not confirmed.
+======= ===============================================================
 
 Initialisation Messages
 +++++++++++++++++++++++
