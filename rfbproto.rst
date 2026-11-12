@@ -716,8 +716,8 @@ Code            Name            Description
 260             X509None        X509 encryption with no authentication
 261             X509Vnc         X509 encryption with VNC authentication
 262             X509Plain       X509 encryption with Plain authentication
-263             TLSSASL         TLS encryption with SASL authentication
-264             X509SASL        X509 encryption with SASL authentication
+263             X509SASL        X509 encryption with SASL authentication
+264             TLSSASL         TLS encryption with SASL authentication
 265             Ident           Ident authentication
 266             TLSIdent        TLS encryption with Ident authentication
 267             X509Ident       X509 encryption with Ident authentication
